@@ -1,5 +1,5 @@
-#ifndef ARMORIAL_SUASSUNA_PACKET_H
-#define ARMORIAL_SUASSUNA_PACKET_H
+#ifndef ARMORIAL_SUASSUNA_PACKET
+#define ARMORIAL_SUASSUNA_PACKET
 
 #include "peer.h"
 #include <stdint.h>
@@ -28,7 +28,15 @@ inline int GetPlayerIdFromPacket(const struct_control &packet) {
 }
 
 inline bool ProcessAndSendControl(char *data, const long &size) {
-  String dataAsStr(data);
+  String dataAsStr;
+  for (int i = 0; i < size; i++) {
+    if (data[i] == startDelimiter || data[i] == endDelimiter) {
+      dataAsStr += data[i];
+    } else {
+      dataAsStr += '0';
+    }
+  }
+
   String strBuff;
   struct_control structuredPacket;
   uint8_t robotMacAddress[MAC_ADDR_SIZE];
@@ -57,4 +65,4 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
   return parsedPacket;
 }
 
-#endif // ARMORIAL_SUASSUNA_PACKET_H
+#endif /* ARMORIAL_SUASSUNA_PACKET */
