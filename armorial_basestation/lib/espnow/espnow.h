@@ -11,10 +11,10 @@ inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
 
 // ESPNow callbacks
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
-  if (len == sizeof(struct_feedback)) {
-    Serial.write(&startDelimiter, sizeof(char));
+  if (CanSendFeedbacks() && len == sizeof(FeedbackPacket)) {
+    Serial.write((byte *)&startDelimiter, startDelimiter.length());
     Serial.write(incomingData, len);
-    Serial.write(&endDelimiter, sizeof(char));
+    Serial.write((byte *)&endDelimiter, endDelimiter.length());
     Serial.flush();
   }
 }

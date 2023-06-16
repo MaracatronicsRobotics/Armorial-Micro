@@ -6,7 +6,7 @@
 #define BAUD_RATE 115200
 #define RX_BUFFER_SIZE 1024
 
-#define WDT_TIMEOUT 3 // seconds
+#define WDT_TIMEOUT 1 // seconds
 #define ENABLE_WDT true
 
 // Buffer control
@@ -37,7 +37,7 @@ void loop() {
   // If serial is available and its available size of bigger than our expected
   // control packet size
   long sizeToRead = Serial.available();
-  if (sizeToRead >= sizeof(struct_control)) {
+  if (sizeToRead >= (sizeof(ControlPacket) + 2 * startDelimiter.length())) {
     // Read the available bytes
     long serialSize = Serial.readBytes(buffer, sizeToRead);
 
