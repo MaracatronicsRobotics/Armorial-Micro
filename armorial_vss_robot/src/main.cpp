@@ -12,7 +12,7 @@
 
 unsigned long prevTime;
 float angularSpeedWL = 0, angularSpeedWR = 0, pulsesPerRevolution = 7,
-      gearRatio = 50, encoderResolution = 15000;
+      gearRatio = 50, encoderResolution = 10000;
 int pinc1 = 15, pinc2 = 16;
 int pinc12 = 17, pinc22 = 18;
 volatile int encoderCountWL = 0;
@@ -111,16 +111,19 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 /// TODO: validate CRC
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
   memcpy(&controlPacket, incomingData, sizeof(ControlPacket));
+
+  digitalWrite(LED_BUILTIN, HIGH);
+
   //  Serial.print(len);
   //  Serial.println(" BYTES RECEIVED");
   //
-  //  Serial.println(package.control, BIN);
-  //  Serial.println(package.wv1);
-  //  Serial.println(package.wv2);
-  //  Serial.println(package.wv3);
-  //  Serial.println(package.wv4);
-  //  Serial.println((int) package.solenoid);
-  //  Serial.println(package.crc, BIN);
+  Serial.println(controlPacket.control, BIN);
+  Serial.println(controlPacket.vw1);
+  Serial.println(controlPacket.vw2);
+  Serial.println(controlPacket.vw3);
+  Serial.println(controlPacket.vw4);
+  Serial.println((int)controlPacket.solenoidPower);
+  Serial.println(controlPacket.crc, BIN);
 }
 
 void setup() {
@@ -149,6 +152,8 @@ void setup() {
   pinMode(pinc2, INPUT_PULLUP);
   pinMode(pinc12, INPUT_PULLUP);
   pinMode(pinc22, INPUT_PULLUP);
+
+  pinMode(LED_BUILTIN, OUTPUT);
 
   attachInterrupt(digitalPinToInterrupt(pinc1), handleEncoderWL, CHANGE);
   attachInterrupt(digitalPinToInterrupt(pinc12), handleEncoderWR, CHANGE);
@@ -194,12 +199,13 @@ void loop() {
     feedbackPacket.vw2_encoder = angularSpeedWL;
     feedbackPacket.vw2 = controlPacket.vw2;
     feedbackPacket.timestamp = esp_timer_get_time();
+    digitalWrite(LED_BUILTIN, LOW);
 
     esp_err_t result = esp_now_send(
         broadcastAddress, (uint8_t *)&feedbackPacket, sizeof(FeedbackPacket));
 
     if (result == ESP_OK) {
-      Serial.println("Sent with success");
+      // Serial.println("Sent with success");
     } else {
       Serial.println("Error sending the data");
     }

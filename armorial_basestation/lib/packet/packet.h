@@ -37,24 +37,20 @@ inline int GetPlayerIdFromPacket(const ControlPacket &packet) {
 inline bool ProcessAndSendControl(char *data, const long &size) {
   std::string dataAsStr;
   for (int i = 0; i < size; i++) {
-    if (isDelimiter(data[i])) {
-      dataAsStr += data[i];
-    } else {
-      dataAsStr += dummyByte;
-    }
+    dataAsStr += data[i];
   }
 
-  std::smatch m;
-  std::regex e("<{3}(.*?)>{3}");
+  std::smatch matches;
+  std::regex regexExpression("<{3}(.*?)>{3}");
 
   ControlPacket structuredPacket;
   uint8_t robotMacAddress[MAC_ADDR_SIZE];
   bool parsedPacket = false;
-  while (std::regex_search(dataAsStr, m, e)) {
-    for (auto x : m) {
-      if (x.length() == sizeof(ControlPacket)) {
+  while (std::regex_search(dataAsStr, matches, regexExpression)) {
+    for (auto match : matches) {
+      if (match.length() == sizeof(ControlPacket)) {
         char buff[sizeof(ControlPacket)];
-        memcpy(buff, x.str().c_str(), sizeof(ControlPacket));
+        memcpy(buff, match.str().c_str(), sizeof(ControlPacket));
         memcpy(&structuredPacket, buff, sizeof(ControlPacket));
         if (GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
                            robotMacAddress)) {
@@ -63,7 +59,7 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
         parsedPacket = true;
       }
     }
-    dataAsStr = m.suffix().str();
+    dataAsStr = matches.suffix().str();
   }
 
   return parsedPacket;
