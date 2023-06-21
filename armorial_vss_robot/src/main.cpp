@@ -112,8 +112,6 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
   memcpy(&controlPacket, incomingData, sizeof(ControlPacket));
 
-  digitalWrite(LED_BUILTIN, HIGH);
-
   //  Serial.print(len);
   //  Serial.println(" BYTES RECEIVED");
   //
@@ -152,8 +150,6 @@ void setup() {
   pinMode(pinc2, INPUT_PULLUP);
   pinMode(pinc12, INPUT_PULLUP);
   pinMode(pinc22, INPUT_PULLUP);
-
-  pinMode(LED_BUILTIN, OUTPUT);
 
   attachInterrupt(digitalPinToInterrupt(pinc1), handleEncoderWL, CHANGE);
   attachInterrupt(digitalPinToInterrupt(pinc12), handleEncoderWR, CHANGE);
@@ -199,7 +195,6 @@ void loop() {
     feedbackPacket.vw2_encoder = angularSpeedWL;
     feedbackPacket.vw2 = controlPacket.vw2;
     feedbackPacket.timestamp = esp_timer_get_time();
-    digitalWrite(LED_BUILTIN, LOW);
 
     esp_err_t result = esp_now_send(
         broadcastAddress, (uint8_t *)&feedbackPacket, sizeof(FeedbackPacket));
@@ -212,5 +207,9 @@ void loop() {
     Serial.flush();
   }
 
+  if (isnanf(controlPacket.vw1))
+    controlPacket.vw1 = 0.0f;
+  if (isnanf(controlPacket.vw2))
+    controlPacket.vw2 = 0.0f;
   drive(controlPacket.vw1, controlPacket.vw2);
 }
