@@ -1,6 +1,5 @@
-#include "espnow.h"
-#include "packet.h"
-#include "peer.h"
+#include "communication.h"
+#include "espnow/espnow.h"
 #include <esp_task_wdt.h>
 
 #define BAUD_RATE 115200

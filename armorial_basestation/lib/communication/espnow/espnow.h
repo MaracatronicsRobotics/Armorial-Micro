@@ -1,9 +1,9 @@
 #ifndef ARMORIAL_SUASSUNA_ESPNOW_H
 #define ARMORIAL_SUASSUNA_ESPNOW_H
 
-#include "packet.h"
-#include "peer.h"
 #include <WiFi.h>
+#include <communication.h>
+#include <peer/peer.h>
 
 bool canSendFeedbacks = false;
 inline bool CanSendFeedbacks() { return canSendFeedbacks; }
