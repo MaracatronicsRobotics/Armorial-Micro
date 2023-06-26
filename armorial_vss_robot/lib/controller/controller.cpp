@@ -27,12 +27,12 @@ void Controller::drive() {
   ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID,
             wheel_left_setpoint > 0 ? int(wheel_left_setpoint) : 0);
   ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID,
-            wheel_left_setpoint <= 0 ? 0 : int(wheel_left_setpoint));
+            wheel_left_setpoint <= 0 ? 0 : -int(wheel_left_setpoint));
 
   ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID,
             wheel_right_setpoint > 0 ? int(wheel_right_setpoint) : 0);
   ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID,
-            wheel_right_setpoint <= 0 ? 0 : int(wheel_right_setpoint));
+            wheel_right_setpoint <= 0 ? 0 : -int(wheel_right_setpoint));
 }
 
 void Controller::setupPWMPins() {
@@ -40,6 +40,11 @@ void Controller::setupPWMPins() {
   ledcAttachPin(WHEEL_LEFT_BACKWARD_PIN, WHEEL_LEFT_BACKWARD_PIN_ID);
   ledcAttachPin(WHEEL_RIGHT_FORWARD_PIN, WHEEL_RIGHT_FORWARD_PIN_ID);
   ledcAttachPin(WHEEL_RIGHT_BACKWARD_PIN, WHEEL_RIGHT_BACKWARD_PIN_ID);
+
+  ledcSetup(WHEEL_LEFT_FORWARD_PIN_ID, 1000, 8);
+  ledcSetup(WHEEL_LEFT_BACKWARD_PIN_ID, 1000, 8);
+  ledcSetup(WHEEL_RIGHT_FORWARD_PIN_ID, 1000, 8);
+  ledcSetup(WHEEL_RIGHT_BACKWARD_PIN_ID, 1000, 8);
 }
 
 void Controller::setupHBridge() {

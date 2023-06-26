@@ -47,7 +47,7 @@ void Encoder::setup() {
   pinMode(PIN_ENCODER_1_A, INPUT_PULLUP);
   pinMode(PIN_ENCODER_1_B, INPUT_PULLUP);
   pinMode(PIN_ENCODER_2_A, INPUT_PULLUP);
-  pinMode(PIN_ENCODER_1_B, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_2_B, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_1_A),
                   &Encoder::handleEncoderWL, CHANGE);
