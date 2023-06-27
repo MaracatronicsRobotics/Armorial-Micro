@@ -10,7 +10,7 @@
 
 #define MAC_ADDR_SIZE 6
 
-#define CONFIG_ESPNOW_CHANNEL 1
+#define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
 
 std::map<int, std::array<uint8_t, MAC_ADDR_SIZE>> peers;

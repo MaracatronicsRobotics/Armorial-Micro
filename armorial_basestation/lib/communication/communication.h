@@ -44,9 +44,8 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
       }
       dataAsStr = matches.suffix().str();
     }
-
-    return parsedPacket;
   }
+  return parsedPacket;
 }
 
 #endif // ARMORIAL_SUASSUNA_COMMUNICATION_H
