@@ -3,6 +3,7 @@
 
 #include <WiFi.h>
 #include <communication.h>
+#include <esp_wifi.h>
 #include <peer/peer.h>
 
 bool canSendFeedbacks = false;
@@ -20,7 +21,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
 }
 
 inline void InitEspNow() {
-  WiFi.mode(WIFI_STA);
+  // Disable power save mode
+  ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
+
+  // Set device as a Wi-Fi Station
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.disconnect();
+
   ESP_ERROR_CHECK(esp_now_init());
   ESP_ERROR_CHECK(esp_now_register_recv_cb(OnDataRecv));
   AddPeersToEspNow();
