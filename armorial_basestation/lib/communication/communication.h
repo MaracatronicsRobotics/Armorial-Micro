@@ -34,13 +34,13 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
         char buff[sizeof(ControlPacket)];
         memcpy(buff, match.str().c_str(), sizeof(ControlPacket));
         memcpy(&structuredPacket, buff, sizeof(ControlPacket));
-        if (validate_controlpacket_crc(structuredPacket)) {
-          if (GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
-                             robotMacAddress)) {
-            esp_now_send(robotMacAddress, (uint8_t *)&buff, sizeof(buff));
-          }
-          parsedPacket = true;
+        // if (validate_controlpacket_crc(structuredPacket)) {
+        if (GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
+                           robotMacAddress)) {
+          esp_now_send(robotMacAddress, (uint8_t *)&buff, sizeof(buff));
         }
+        parsedPacket = true;
+        //}
       }
       dataAsStr = matches.suffix().str();
     }

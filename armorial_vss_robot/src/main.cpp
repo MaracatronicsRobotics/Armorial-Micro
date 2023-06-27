@@ -8,7 +8,6 @@ Controller *controller = new Controller(encoder);
 Communication *communication = new Communication(controller);
 
 void sendEncoderFeedback() {
-  /// TODO: get InfraRed and battery percentage
   ControlPacket controlPacket = controller->getControlPacket();
   FeedbackPacket feedbackPacket;
   feedbackPacket.control = controlPacket.control;

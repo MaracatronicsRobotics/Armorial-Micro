@@ -40,7 +40,7 @@ void Communication::EspNowDataReceived(const uint8_t *mac,
   ControlPacket controlPacket;
   memcpy(&controlPacket, incomingData, sizeof(ControlPacket));
 
-  if (validate_controlpacket_crc(controlPacket)) {
-    _controller->setControlPacket(controlPacket);
-  }
+  // if (validate_controlpacket_crc(controlPacket)) {
+  _controller->setControlPacket(controlPacket);
+  //}
 }

@@ -18,6 +18,9 @@
 #define WHEEL_RIGHT_FORWARD_PIN_ID 3
 #define WHEEL_RIGHT_BACKWARD_PIN_ID 4
 
+#define PWM_FREQUENCY 1000
+#define PWM_RESOLUTION 8
+
 #define SATURATION_VALUE 250.0f
 
 class Controller {

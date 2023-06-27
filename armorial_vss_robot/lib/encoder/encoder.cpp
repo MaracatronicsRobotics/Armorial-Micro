@@ -58,6 +58,7 @@ void Encoder::setup() {
   esp_timer_create_args_t encoder_timer_args = {
       .callback = &Encoder::computeEncoderCallback, .name = "encoder"};
   ESP_ERROR_CHECK(esp_timer_create(&encoder_timer_args, &encoder_timer));
+  ESP_ERROR_CHECK(esp_timer_start_periodic(encoder_timer, ENCODER_RESOLUTION));
 }
 
 void Encoder::registerCallback(std::function<void()> callbackFunction) {
