@@ -12,6 +12,9 @@ Communication::Communication(Controller *controller) {
 void Communication::setupEspNow() {
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_MODE_STA);
+  WiFi.disconnect();
+  delay(100);
+  WiFi.channel(CONFIG_ESPNOW_CHANNEL);
 
   // Init ESP-NOW
   ESP_ERROR_CHECK(esp_now_init());

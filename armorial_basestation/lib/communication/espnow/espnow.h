@@ -22,6 +22,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
 inline void InitEspNow() {
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_MODE_STA);
+  WiFi.disconnect();
+  delay(100);
+  WiFi.channel(CONFIG_ESPNOW_CHANNEL);
 
   ESP_ERROR_CHECK(esp_now_init());
   ESP_ERROR_CHECK(esp_now_register_recv_cb(OnDataRecv));
