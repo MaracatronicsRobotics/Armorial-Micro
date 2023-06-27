@@ -10,8 +10,8 @@
 
 #define MAC_ADDR_SIZE 6
 
-#define ESP_NOW_CHANNEL 0
-#define ESP_NOW_ENCRYPT false
+#define CONFIG_ESPNOW_CHANNEL 1
+#define CONFIG_ESPNOW_ENCRYPT false
 
 std::map<int, std::array<uint8_t, MAC_ADDR_SIZE>> peers;
 esp_now_peer_info_t peerInfo;
@@ -25,8 +25,8 @@ bool GetPeerAddress(const int robotId, uint8_t *address) {
 }
 
 inline void AddPeersToEspNow() {
-  peerInfo.channel = ESP_NOW_CHANNEL;
-  peerInfo.encrypt = ESP_NOW_ENCRYPT;
+  peerInfo.channel = CONFIG_ESPNOW_CHANNEL;
+  peerInfo.encrypt = CONFIG_ESPNOW_ENCRYPT;
   for (auto it = peers.begin(); it != peers.end(); it++) {
     memcpy(peerInfo.peer_addr, it->second.data(), MAC_ADDR_SIZE);
     ESP_ERROR_CHECK(esp_now_add_peer(&peerInfo));

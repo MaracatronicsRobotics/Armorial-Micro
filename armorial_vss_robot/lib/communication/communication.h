@@ -7,6 +7,7 @@
 
 #define BASE_STATION_MAC_ADDRESS                                               \
   { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+#define CONFIG_ESPNOW_CHANNEL 1
 
 class Communication {
 public:
