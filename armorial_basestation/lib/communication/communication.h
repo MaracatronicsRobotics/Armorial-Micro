@@ -6,6 +6,9 @@
 #include <peer/peer.h>
 #include <regex>
 
+#define BROADCAST_ADDRESS                                                      \
+  { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+
 const String startDelimiter("<<<");
 const String endDelimiter(">>>");
 const char dummyByte = '0';
@@ -26,7 +29,7 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
   std::regex regexExpression("<{3}(.*?)>{3}");
 
   ControlPacket structuredPacket;
-  uint8_t robotMacAddress[MAC_ADDR_SIZE];
+  uint8_t robotMacAddress[MAC_ADDR_SIZE] = BROADCAST_ADDRESS;
   bool parsedPacket = false;
   while (std::regex_search(dataAsStr, matches, regexExpression)) {
     for (auto match : matches) {
@@ -34,13 +37,12 @@ inline bool ProcessAndSendControl(char *data, const long &size) {
         char buff[sizeof(ControlPacket)];
         memcpy(buff, match.str().c_str(), sizeof(ControlPacket));
         memcpy(&structuredPacket, buff, sizeof(ControlPacket));
-        // if (validate_controlpacket_crc(structuredPacket)) {
-        if (GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
-                           robotMacAddress)) {
+        if (validate_controlpacket_crc(structuredPacket)) {
+          GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
+                         robotMacAddress);
           esp_now_send(robotMacAddress, (uint8_t *)&buff, sizeof(buff));
+          parsedPacket = true;
         }
-        parsedPacket = true;
-        //}
       }
       dataAsStr = matches.suffix().str();
     }

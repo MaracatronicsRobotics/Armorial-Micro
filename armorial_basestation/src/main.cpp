@@ -25,9 +25,6 @@ void setup() {
     esp_task_wdt_add(NULL);
   }
 
-  // Setup peers (TODO: check how to take peers from serial (?))
-  InsertPeer(0, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
-
   // Start ESPNow
   InitEspNow();
 }

@@ -5,8 +5,8 @@
 #include <controller.h>
 #include <esp_now.h>
 
-#define BASE_STATION_MAC_ADDRESS                                               \
-  { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+#define ROBOT_ID 1 // change this to the proper robot identifier
+#define CONFIG_WIFI_CHANNEL 0
 #define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
 
@@ -21,9 +21,12 @@ protected:
   static void EspNowDataReceived(const uint8_t *mac,
                                  const uint8_t *incomingData, int len);
 
+  static bool checkIfMacIsBaseStation(const uint8_t *mac);
+
 private:
   static Controller *_controller;
-  static esp_now_peer_info_t peerInfo;
+  static esp_now_peer_info_t baseStationPeerInfo;
+  static bool receivedFromBaseStation;
 };
 
 #endif // ARMORIAL_SUASSUNA_COMMUNICATION_H
