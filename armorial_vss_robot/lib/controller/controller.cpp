@@ -27,12 +27,12 @@ void Controller::drive() {
   ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID,
             wheel_left_setpoint > 0 ? int(wheel_left_setpoint) : 0);
   ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID,
-            wheel_left_setpoint <= 0 ? 0 : int(-wheel_left_setpoint));
+            wheel_left_setpoint <= 0 ? int(-wheel_left_setpoint) : 0);
 
   ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID,
             wheel_right_setpoint > 0 ? int(wheel_right_setpoint) : 0);
   ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID,
-            wheel_right_setpoint <= 0 ? 0 : int(-wheel_right_setpoint));
+            wheel_right_setpoint <= 0 ? int(-wheel_right_setpoint) : 0);
 }
 
 void Controller::setupPWMPins() {

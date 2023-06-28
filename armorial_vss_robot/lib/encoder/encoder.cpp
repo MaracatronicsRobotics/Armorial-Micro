@@ -7,7 +7,7 @@ volatile int Encoder::encoder_count_wr = 0;
 std::function<void()> Encoder::callback = nullptr;
 
 float Encoder::getAngularSpeedWL() { return angular_speed_wl; }
-float Encoder::getAngularSpeedWR() { return angular_speed_wr; }
+float Encoder::getAngularSpeedWR() { return -angular_speed_wr; }
 
 void Encoder::computeEncoderCallback(void *arg) {
   angular_speed_wl =
