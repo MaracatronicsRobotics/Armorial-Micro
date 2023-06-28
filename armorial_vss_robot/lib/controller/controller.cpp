@@ -3,7 +3,18 @@
 
 #include <algorithm>
 
-Controller::Controller(Encoder *encoder) : _encoder(encoder) { _pid = PID(); }
+Controller::Controller(Encoder *encoder) : _encoder(encoder) {
+  _pid = PID();
+  ControlPacket controlPacket;
+  controlPacket.control = ROBOT_ID;
+  controlPacket.crc = 0;
+  controlPacket.solenoidPower = 0;
+  controlPacket.vw1 = 0;
+  controlPacket.vw2 = 0;
+  controlPacket.vw3 = 0;
+  controlPacket.vw4 = 0;
+  setControlPacket(controlPacket);
+}
 
 void Controller::setControlPacket(const ControlPacket &controlPacket) {
   _control_packet = controlPacket;

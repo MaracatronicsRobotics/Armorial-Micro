@@ -5,7 +5,6 @@
 #include <controller.h>
 #include <esp_now.h>
 
-#define ROBOT_ID 1 // change this to the proper robot identifier
 #define CONFIG_WIFI_CHANNEL 0
 #define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
