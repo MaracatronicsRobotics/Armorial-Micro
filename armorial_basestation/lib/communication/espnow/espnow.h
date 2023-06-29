@@ -9,6 +9,8 @@ bool canSendFeedbacks = false;
 inline bool CanSendFeedbacks() { return canSendFeedbacks; }
 inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
 
+std::string feedbackBuffer[MAX_NUM_ROBOTS];
+
 // ESPNow callbacks
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
   if (CanSendFeedbacks() && len == sizeof(FeedbackPacket)) {
@@ -21,10 +23,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
       InsertPeer(playerId, mac_addr);
     }
 
-    Serial.write((byte *)&startDelimiter, startDelimiter.length());
-    Serial.write(incomingData, len);
-    Serial.write((byte *)&endDelimiter, endDelimiter.length());
-    Serial.flush();
+    std::string buf;
+    for(int i = 0; i < sizeof(FeedbackPacket); i++) {
+      buf += (char) incomingData[i];
+    }
+
+    std::string feedback = "<<<";
+    feedback += buf;
+    feedback += ">>>";
+    feedbackBuffer[playerId] = feedback;
   }
 }
 

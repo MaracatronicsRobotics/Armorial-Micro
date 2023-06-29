@@ -2,6 +2,8 @@
 #include "espnow/espnow.h"
 #include <esp_task_wdt.h>
 
+#include <string>
+
 #define BAUD_RATE 115200
 #define RX_BUFFER_SIZE 1024
 
@@ -9,7 +11,7 @@
 #define ENABLE_WDT true
 
 // Buffer control
-char buffer[RX_BUFFER_SIZE] = {'\0'};
+std::string strBuff;
 
 void setup() {
   // Start serial and wait for it to be ready
@@ -29,21 +31,29 @@ void setup() {
   InitEspNow();
 }
 
-void loop() {
-  // If serial is available and its available size of bigger than our expected
-  // control packet size
-  long sizeToRead = Serial.available();
-  if (sizeToRead >= (sizeof(ControlPacket) + 2 * startDelimiter.length())) {
-    // Read the available bytes
-    long serialSize = Serial.readBytes(buffer, sizeToRead);
-
-    // Reset watch dog if could parse any packet properly
-    if (ProcessAndSendControl(buffer, sizeToRead)) {
-      if (ENABLE_WDT)
+void loop() {  
+  while(Serial.available()) {
+    int len = Serial.available();
+    char buff[len];
+    Serial.readBytes(buff, len);
+    for(int i = 0; i < len; i++) {
+      strBuff += buff[i];
+    }
+    
+    if(ProcessPattern(strBuff)) {
+      if(ENABLE_WDT) 
         esp_task_wdt_reset();
     }
 
-    // Mark as can send feedbacks
     SetCanSendFeedbacks();
+  }
+
+  for(int i = 0; i < MAX_NUM_ROBOTS; i++) {
+    if(PeerExists(i)) {
+      if(feedbackBuffer[i].size()) {
+        Serial.write(feedbackBuffer[i].c_str(), feedbackBuffer[i].size());
+        feedbackBuffer[i].clear();
+      }
+    }
   }
 }

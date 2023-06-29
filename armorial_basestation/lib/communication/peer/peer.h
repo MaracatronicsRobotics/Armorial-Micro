@@ -21,8 +21,13 @@ bool PeerExists(const int &robotId) {
   return (peers.find(robotId) != peers.end());
 }
 
+bool DelPeer(const int &robotId) {
+  peers.erase(robotId);
+  return !PeerExists(robotId);
+}
+
 bool GetPeerAddress(const int robotId, uint8_t *address) {
-  if (peers.find(robotId) != peers.end()) {
+  if (PeerExists(robotId)) {
     memcpy(address, peers.at(robotId).data(), MAC_ADDR_SIZE);
     return true;
   }

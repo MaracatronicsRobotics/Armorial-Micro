@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define MAX_NUM_ROBOTS 12
+
 // Feedback packet
 typedef struct {
   char control;
