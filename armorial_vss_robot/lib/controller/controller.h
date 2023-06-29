@@ -23,8 +23,6 @@
 
 #define SATURATION_VALUE 250.0f
 
-#define ROBOT_ID 0 // change this to the proper robot identifier
-
 class Controller {
 public:
   Controller(Encoder *encoder);

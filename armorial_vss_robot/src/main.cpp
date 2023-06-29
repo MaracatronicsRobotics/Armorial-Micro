@@ -11,18 +11,11 @@ void sendEncoderFeedback() {
   ControlPacket controlPacket = controller->getControlPacket();
   FeedbackPacket feedbackPacket;
   feedbackPacket.control = controlPacket.control;
-  feedbackPacket.batteryPercentage = 0;
-  feedbackPacket.infraRedStatus = false;
   feedbackPacket.vw1_encoder = encoder->getAngularSpeedWL();
   feedbackPacket.vw1 = controlPacket.vw1;
   feedbackPacket.vw2_encoder = encoder->getAngularSpeedWR();
   feedbackPacket.vw2 = controlPacket.vw2;
-  feedbackPacket.vw3_encoder = 0;
-  feedbackPacket.vw3 = 0;
-  feedbackPacket.vw4_encoder = 0;
-  feedbackPacket.vw4 = 0;
   feedbackPacket.timestamp = esp_timer_get_time();
-  feedbackPacket.crc = 0;
   feedbackPacket.crc = compute_crc16cdma2000_byte(
       CRC_INITIAL_VALUE, (char *)&feedbackPacket, sizeof(FeedbackPacket));
 
