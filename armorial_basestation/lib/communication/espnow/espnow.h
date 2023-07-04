@@ -1,9 +1,12 @@
-#ifndef ARMORIAL_SUASSUNA_ESPNOW_H
-#define ARMORIAL_SUASSUNA_ESPNOW_H
+#ifndef ARMORIAL_SUASSUNA_ESPNOW
+#define ARMORIAL_SUASSUNA_ESPNOW
 
 #include <esp_wifi.h>
 #include <communication.h>
 #include <peer/peer.h>
+
+#define LEFT_DELIMITER "<<<"
+#define RIGHT_DELIMITER ">>>"
 
 bool canSendFeedbacks = false;
 inline bool CanSendFeedbacks() { return canSendFeedbacks; }
@@ -11,27 +14,49 @@ inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
 
 std::string feedbackBuffer[MAX_NUM_ROBOTS];
 
+bool isUpcomingMacAddressValidForPlayer(const uint8_t& playerId, const uint8_t* upcomingMacAddress) {
+  std::array<uint8_t, MAC_ADDR_SIZE> upcomingAddress;
+  uint8_t registeredPeerAddress[MAC_ADDR_SIZE];
+  memcpy(upcomingAddress.data(), mac, MAC_ADDR_SIZE);
+  GetPeerAddress(playerId, registeredPeerAddress);
+  return (memcmp(upcomingAddress.data(), registeredPeerAddress, MAC_ADDR_SIZE) == 0);
+}
+
+std::string addDelimiters(const std::string& message) {
+  std::string delimitedMessage = LEFT_DELIMITER;
+  delimitedMessage += message;
+  delimitedMessage += RIGHT_DELIMITER;
+
+  return delimitedMessage;
+}
+
 // ESPNow callbacks
 void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
   if (CanSendFeedbacks() && len == sizeof(FeedbackPacket)) {
     FeedbackPacket packet;
     memcpy(&packet, incomingData, sizeof(FeedbackPacket));
     uint8_t playerId = packet.control & 0x0F;
-    if (!PeerExists(playerId)) {
-      std::array<uint8_t, MAC_ADDR_SIZE> mac_addr;
-      memcpy(mac_addr.data(), mac, MAC_ADDR_SIZE);
-      InsertPeer(playerId, mac_addr);
-    }
 
-    std::string buf;
-    for(int i = 0; i < sizeof(FeedbackPacket); i++) {
-      buf += (char) incomingData[i];
-    }
+    if(validate_feedbackpacket_crc(packet)) {
+      if (!PeerExists(playerId)) {
+        std::array<uint8_t, MAC_ADDR_SIZE> peerAddress;
+        memcpy(peerAddress.data(), mac, MAC_ADDR_SIZE);
+        InsertPeer(playerId, mac_addr);
+      }
+      else {
+        if(!isUpcomingMacAddressValidForPlayer(playerId, mac)) {
+          return ;
+        }
+      }
 
-    std::string feedback = "<<<";
-    feedback += buf;
-    feedback += ">>>";
-    feedbackBuffer[playerId] = feedback;
+      std::string buf;
+      for(int i = 0; i < sizeof(FeedbackPacket); i++) {
+        buf += (char) incomingData[i];
+      }
+
+      std::string feedback = addDelimiters(buf);
+      feedbackBuffer[playerId] = feedback;
+    }
   }
 }
 
@@ -54,4 +79,4 @@ inline void InitEspNow() {
   InsertPeer(100, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-#endif // ARMORIAL_SUASSUNA_ESPNOW_H
+#endif /* ARMORIAL_SUASSUNA_ESPNOW */

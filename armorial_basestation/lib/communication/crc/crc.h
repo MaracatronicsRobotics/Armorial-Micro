@@ -59,4 +59,12 @@ static bool validate_controlpacket_crc(ControlPacket packet) {
                                                   sizeof(ControlPacket)));
 }
 
+static bool validate_feedbackpacket_crc(FeedbackPacket packet) {
+  uint16_t packetCRC = packet.crc;
+  packet.crc = 0;
+  return (packetCRC == compute_crc16cdma2000_byte(CRC_INITIAL_VALUE,
+                                                  (char *)&packet,
+                                                  sizeof(ControlPacket)));
+}
+
 #endif // ARMORIAL_SUASSUNA_CRC_H

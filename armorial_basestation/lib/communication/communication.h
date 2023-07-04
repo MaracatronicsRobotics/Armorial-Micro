@@ -10,10 +10,6 @@
   { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
 #define SEQUENTIAL_ERRORS_TO_REMOVE_PEER 10
 
-const String startDelimiter("<<<");
-const String endDelimiter(">>>");
-const char dummyByte = '0';
-
 int commandFailCounter[MAX_NUM_ROBOTS] = {0};
 
 bool isDelimiter(const char &c) { return (c == '<' || c == '>'); }
@@ -32,8 +28,8 @@ inline bool CheckIfHasPattern(const std::string& str) {
 inline bool ProcessPattern(std::string& str) {
   bool parsedPacket = false;
   while(CheckIfHasPattern(str)) {
-    size_t startOfPattern = str.find("<<<");
-    size_t endOfPattern = str.find(">>>");
+    size_t startOfPattern = str.find(LEFT_DELIMITER);
+    size_t endOfPattern = str.find(RIGHT_DELIMITER);
 
     if(startOfPattern != 0) {
       str.erase(str.begin(), str.begin() + startOfPattern);
