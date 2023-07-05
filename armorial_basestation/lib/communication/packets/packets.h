@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 #define MAX_NUM_ROBOTS 12
+#define LEFT_DELIMITER std::string("<<<")
+#define RIGHT_DELIMITER std::string(">>>")
 
 // Feedback packet
 typedef struct {

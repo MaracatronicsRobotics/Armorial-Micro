@@ -5,9 +5,6 @@
 #include <communication.h>
 #include <peer/peer.h>
 
-#define LEFT_DELIMITER "<<<"
-#define RIGHT_DELIMITER ">>>"
-
 bool canSendFeedbacks = false;
 inline bool CanSendFeedbacks() { return canSendFeedbacks; }
 inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
@@ -15,11 +12,9 @@ inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
 std::string feedbackBuffer[MAX_NUM_ROBOTS];
 
 bool isUpcomingMacAddressValidForPlayer(const uint8_t& playerId, const uint8_t* upcomingMacAddress) {
-  std::array<uint8_t, MAC_ADDR_SIZE> upcomingAddress;
   uint8_t registeredPeerAddress[MAC_ADDR_SIZE];
-  memcpy(upcomingAddress.data(), mac, MAC_ADDR_SIZE);
   GetPeerAddress(playerId, registeredPeerAddress);
-  return (memcmp(upcomingAddress.data(), registeredPeerAddress, MAC_ADDR_SIZE) == 0);
+  return (memcmp(upcomingMacAddress, registeredPeerAddress, MAC_ADDR_SIZE) == 0);
 }
 
 std::string addDelimiters(const std::string& message) {
@@ -41,7 +36,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
       if (!PeerExists(playerId)) {
         std::array<uint8_t, MAC_ADDR_SIZE> peerAddress;
         memcpy(peerAddress.data(), mac, MAC_ADDR_SIZE);
-        InsertPeer(playerId, mac_addr);
+        InsertPeer(playerId, peerAddress);
       }
       else {
         if(!isUpcomingMacAddressValidForPlayer(playerId, mac)) {
