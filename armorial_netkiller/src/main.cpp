@@ -35,6 +35,6 @@ void setup() {
 }
 
 void loop() {
-  SendGarbage(2);
+  SendGarbage();
   ReconfigureEspNow();
 }
