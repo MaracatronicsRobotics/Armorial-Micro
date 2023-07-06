@@ -48,7 +48,7 @@ void loop() {
     SetCanSendFeedbacks();
   }
 
-  for (int i = 0; i < MAX_NUM_ROBOTS; i++) {
+  for (int i = 0; i < 6; i++) {
     if (PeerExists(i)) {
       digitalWrite(ledPeerPins[i], HIGH);
       if (feedbackBuffer[i].size()) {

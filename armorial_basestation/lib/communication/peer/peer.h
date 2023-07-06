@@ -34,6 +34,19 @@ bool GetPeerAddress(const int robotId, uint8_t *address) {
   return false;
 }
 
+bool GetPeerIdByAddress(const uint8_t* address, int* id) {
+  for(std::map<int, std::array<uint8_t, MAC_ADDR_SIZE>>::iterator iter = peers.begin(); iter != peers.end(); ++iter) {
+    uint8_t peerAddress[MAC_ADDR_SIZE];
+    memcpy(peerAddress, iter->second.data(), MAC_ADDR_SIZE);
+    if(memcmp(peerAddress, address, MAC_ADDR_SIZE) == 0) {
+      (*id) = iter->first;
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 inline void InsertPeer(const int &robotId,
                        const std::array<uint8_t, MAC_ADDR_SIZE> &address) {
   /// TODO: try to get channel from a config packet

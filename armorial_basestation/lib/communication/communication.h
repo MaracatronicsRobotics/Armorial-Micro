@@ -8,9 +8,7 @@
 
 #define BROADCAST_ADDRESS                                                      \
   { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
-#define SEQUENTIAL_ERRORS_TO_REMOVE_PEER 10
 
-int commandFailCounter[MAX_NUM_ROBOTS] = {0};
 
 bool isDelimiter(const char &c) { return (c == '<' || c == '>'); }
 
@@ -52,21 +50,6 @@ inline bool ProcessPattern(std::string& str) {
           bool hasPeerAddress = GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
                          robotMacAddress);
           esp_err_t ret = esp_now_send(robotMacAddress, (uint8_t *)packetToValidate.c_str(), sizeof(ControlPacket));
-          
-          if(hasPeerAddress) {
-            if(ret != ESP_OK) {
-              commandFailCounter[GetPlayerIdFromPacket(structuredPacket)]++;
-              if(commandFailCounter[GetPlayerIdFromPacket(structuredPacket)] >= SEQUENTIAL_ERRORS_TO_REMOVE_PEER) {
-                if(DelPeer(GetPlayerIdFromPacket(structuredPacket))) {
-                  esp_now_del_peer(robotMacAddress);
-                }
-                commandFailCounter[GetPlayerIdFromPacket(structuredPacket)] = 0;
-              }
-            }
-            else {
-              commandFailCounter[GetPlayerIdFromPacket(structuredPacket)] = std::max(0, commandFailCounter[GetPlayerIdFromPacket(structuredPacket)] - 1);
-            }
-          }
           parsedPacket = true;
       }
     }
