@@ -10,6 +10,9 @@ inline bool CanSendFeedbacks() { return canSendFeedbacks; }
 inline void SetCanSendFeedbacks() { canSendFeedbacks = true; }
 
 std::string feedbackBuffer[MAX_NUM_ROBOTS];
+// TODO: set size of array equals MAX_NUM_ROBOTS, and find the other 6 missing pins
+uint8_t ledPeerPins[6] = { 19, 18, 12, 14, 26, 25};
+uint8_t buzzerPin = 0;
 
 bool isUpcomingMacAddressValidForPlayer(const uint8_t &playerId,
                                         const uint8_t *upcomingMacAddress) {
@@ -57,6 +60,13 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
 }
 
 inline void InitEspNow() {
+  // Setting pins mode
+  for (int robotId = 0; robotId < MAX_NUM_ROBOTS; robotId++) {
+    pinMode(ledPeerPins[robotId], OUTPUT);
+    digitalWrite(ledPeerPins[robotId], LOW);
+  }
+  pinMode(buzzerPin, OUTPUT);
+
   // Set device as a Wi-Fi Station
   ESP_ERROR_CHECK(esp_netif_init());
   ESP_ERROR_CHECK(esp_event_loop_create_default());

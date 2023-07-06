@@ -75,4 +75,4 @@ inline bool ProcessPattern(std::string& str) {
   return parsedPacket;
 }
 
-#endif /* ARMORIAL_SUASSUNA_COMMUNICATION */
+#endif/* ARMORIAL_SUASSUNA_COMMUNICATION */

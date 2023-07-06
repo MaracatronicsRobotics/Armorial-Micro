@@ -31,29 +31,32 @@ void setup() {
   InitEspNow();
 }
 
-void loop() {  
-  while(Serial.available()) {
+void loop() {
+  while (Serial.available()) {
     int len = Serial.available();
     char buff[len];
     Serial.readBytes(buff, len);
-    for(int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       strBuff += buff[i];
     }
-    
-    if(ProcessPattern(strBuff)) {
-      if(ENABLE_WDT) 
+
+    if (ProcessPattern(strBuff)) {
+      if (ENABLE_WDT)
         esp_task_wdt_reset();
     }
 
     SetCanSendFeedbacks();
   }
 
-  for(int i = 0; i < MAX_NUM_ROBOTS; i++) {
-    if(PeerExists(i)) {
-      if(feedbackBuffer[i].size()) {
+  for (int i = 0; i < MAX_NUM_ROBOTS; i++) {
+    if (PeerExists(i)) {
+      digitalWrite(ledPeerPins[i], HIGH);
+      if (feedbackBuffer[i].size()) {
         Serial.write(feedbackBuffer[i].c_str(), feedbackBuffer[i].size());
         feedbackBuffer[i].clear();
       }
+    } else {
+      digitalWrite(ledPeerPins[i], LOW);
     }
   }
 }
