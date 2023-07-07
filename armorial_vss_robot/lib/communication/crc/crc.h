@@ -50,7 +50,7 @@ static uint16_t compute_crc16cdma2000_byte(const uint16_t &initialCRCValue,
   return crc;
 }
 
-static bool validate_controlpacket_crc(ControlPacket packet) {
+static bool validatePacketCRC(ControlPacket packet) {
   uint16_t packetCRC = packet.crc;
   packet.crc = 0;
   return (packetCRC == compute_crc16cdma2000_byte(CRC_INITIAL_VALUE,

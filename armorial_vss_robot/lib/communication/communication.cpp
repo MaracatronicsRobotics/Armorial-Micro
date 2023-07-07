@@ -46,7 +46,7 @@ void Communication::EspNowDataReceived(const uint8_t *mac,
   if (len == sizeof(ControlPacket)) {
     ControlPacket controlPacket;
     memcpy(&controlPacket, incomingData, sizeof(ControlPacket));
-    if (validate_controlpacket_crc(controlPacket)) {
+    if (validatePacketCRC(controlPacket)) {
       if (!receivedFromBaseStation) {
         receivedFromBaseStation = true;
 

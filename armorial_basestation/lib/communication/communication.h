@@ -3,59 +3,43 @@
 
 #include <crc/crc.h>
 #include <packets/packets.h>
-#include <peer/peer.h>
+#include <peer/peers.h>
 #include <regex>
+
+#include <esp_now.h>
+#include <esp_wifi.h>
 
 #define BROADCAST_ADDRESS                                                      \
   { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+#define SEQUENTIAL_ERRORS_TO_REMOVE_PEER 5
 
+class Communication {
+public:
+  Communication();
+  static void setupEspNow();
+  static void resetUnconnectedPeersFeedbackTimestamp(const uint64_t &timestamp);
+  static bool processSerial(std::string &data);
+  static bool getFeedbackFromRobot(const int &robotId, std::string &buffer);
+  static uint64_t getLastFeedbackTimestamp(const int &robotId);
 
-bool isDelimiter(const char &c) { return (c == '<' || c == '>'); }
+protected:
+  static void EspNowDataReceived(const uint8_t *mac,
+                                 const uint8_t *incomingData, int len);
+  static void EspNowDataSent(const uint8_t *mac, esp_now_send_status_t status);
 
-inline int GetPlayerIdFromPacket(const ControlPacket &packet) {
-  return (packet.control & 0x0F);
-}
+private:
+  static bool checkIfHasDelimiterMatch(std::string &data);
+  static int getPlayerIdFromPacket(const ControlPacket &controlPacket);
+  static bool isDelimiter(const char &c);
+  static bool isAddressValidForPlayer(const uint8_t &playerId,
+                                      const uint8_t *upcomingMacAddress);
+  static std::string addDelimiters(const std::string &message);
+  static bool isValidPlayerId(const int &playerId);
 
-inline bool CheckIfHasPattern(const std::string& str) {
-  std::smatch matches;
-  std::regex regexExpression("<{3}(.*?)>{3}");
+  static int commandFailCounter[MAX_NUM_ROBOTS];
+  static uint64_t lastFeedbackTimestamp[MAX_NUM_ROBOTS];
+  static bool canSendFeedbacks;
+  static std::string feedbacksBuffer[MAX_NUM_ROBOTS];
+};
 
-  return std::regex_search(str, matches, regexExpression);
-}
-
-inline bool ProcessPattern(std::string& str) {
-  bool parsedPacket = false;
-  while(CheckIfHasPattern(str)) {
-    size_t startOfPattern = str.find(LEFT_DELIMITER);
-    size_t endOfPattern = str.find(RIGHT_DELIMITER);
-
-    if(startOfPattern != 0) {
-      str.erase(str.begin(), str.begin() + startOfPattern);
-      continue;
-    }
-
-    int matchSize = endOfPattern - startOfPattern + 3;
-
-    std::string packetToValidate;
-    for(int i = startOfPattern + 3; i < endOfPattern; i++) {
-      packetToValidate += str.at(i);
-    }
-    str.erase(startOfPattern, matchSize);
-
-    ControlPacket structuredPacket;
-    uint8_t robotMacAddress[MAC_ADDR_SIZE] = BROADCAST_ADDRESS;
-    if(packetToValidate.size() == sizeof(ControlPacket)) {
-      memcpy(&structuredPacket, packetToValidate.c_str(), sizeof(ControlPacket));
-      if (validate_controlpacket_crc(structuredPacket)) {
-          bool hasPeerAddress = GetPeerAddress(GetPlayerIdFromPacket(structuredPacket),
-                         robotMacAddress);
-          esp_err_t ret = esp_now_send(robotMacAddress, (uint8_t *)packetToValidate.c_str(), sizeof(ControlPacket));
-          parsedPacket = true;
-      }
-    }
-  }
-
-  return parsedPacket;
-}
-
-#endif/* ARMORIAL_SUASSUNA_COMMUNICATION */
+#endif /* ARMORIAL_SUASSUNA_COMMUNICATION */
