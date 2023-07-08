@@ -125,29 +125,27 @@ void Communication::EspNowDataReceived(const uint8_t *mac,
     uint8_t playerId = packet.control & 0x0F;
 
     if (validatePacketCRC(packet)) {
-      if (!isValidPlayerId(playerId)) {
-        return;
-      }
-      if (!Peers::peerExists(playerId)) {
-        std::array<uint8_t, MAC_ADDR_SIZE> peerAddress;
-        memcpy(peerAddress.data(), mac, MAC_ADDR_SIZE);
-        Peers::insertPeer(playerId, peerAddress);
-        Buzzer::connectSound();
-      } else {
-        if (!isAddressValidForPlayer(playerId, mac)) {
-          return;
+      if (isValidPlayerId(playerId)) {
+        if (!Peers::peerExists(playerId)) {
+          std::array<uint8_t, MAC_ADDR_SIZE> peerAddress;
+          memcpy(peerAddress.data(), mac, MAC_ADDR_SIZE);
+          Peers::insertPeer(playerId, peerAddress);
+          Buzzer::connectSound();
+        } else {
+          if (!isAddressValidForPlayer(playerId, mac)) {
+            return;
+          }
         }
+        std::string buf;
+        for (int i = 0; i < sizeof(FeedbackPacket); i++) {
+          buf += (char)incomingData[i];
+        }
+
+        std::string feedback = addDelimiters(buf);
+        feedbacksBuffer[playerId] = feedback;
+        lastFeedbackTimestamp[playerId] = esp_timer_get_time();
       }
     }
-
-    std::string buf;
-    for (int i = 0; i < sizeof(FeedbackPacket); i++) {
-      buf += (char)incomingData[i];
-    }
-
-    std::string feedback = addDelimiters(buf);
-    feedbacksBuffer[playerId] = feedback;
-    lastFeedbackTimestamp[playerId] = esp_timer_get_time();
   }
 }
 
