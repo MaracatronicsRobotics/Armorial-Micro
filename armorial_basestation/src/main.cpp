@@ -19,7 +19,7 @@ void setup() {
   // Start serial and wait for it to be ready
   Serial.begin(BAUD_RATE);
   Serial.setRxBufferSize(RX_BUFFER_SIZE);
-  Serial.setTimeout(1000000000L);
+  // Serial.setTimeout(1000000000L);
   while (!Serial) {
     delay(10);
   }
@@ -42,7 +42,7 @@ void setup() {
 
 void loop() {
   // Process serial
-  while (Serial.available()) {
+  if (Serial.available()) {
     int len = Serial.available();
     char buff[len];
     Serial.readBytes(buff, len);
