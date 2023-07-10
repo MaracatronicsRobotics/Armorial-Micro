@@ -37,8 +37,8 @@ public:
 
 private:
   Encoder *_encoder;
-  PID _pid;
   ControlPacket _control_packet;
+
 };
 
 #endif // ARMORIAL_SUASSUNA_CONTROLLER_H
