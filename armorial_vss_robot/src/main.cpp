@@ -6,8 +6,6 @@
 Encoder *encoder = new Encoder();
 Controller *controller = new Controller(encoder);
 Communication *communication = new Communication(controller);
-PID_velocity *wheel1 = new PID_velocity();
-PID_velocity *wheel2 = new PID_velocity();
 
 void sendEncoderFeedback() {
   ControlPacket controlPacket = controller->getControlPacket();
@@ -47,8 +45,4 @@ void setup() {
   Communication::setupEspNow();
 }
 
-void loop() {
-  controller->drive();
-  wheel1->update();
-  wheel2->update();
-}
+void loop() { controller->drive(); }

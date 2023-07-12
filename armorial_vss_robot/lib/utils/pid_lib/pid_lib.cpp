@@ -11,7 +11,7 @@
 #include "WProgram.h"
 #endif
 
-#include <PID_v1.h>
+#include "pid_lib.h"
 
 /*Constructor (...)*********************************************************
  *    The parameters specified here are those for for which we can't set up
@@ -57,6 +57,7 @@ bool PID::Compute(bool activateTime, bool force) {
     return false;
   unsigned long now = millis();
   unsigned long timeChange = (now - lastTime);
+  Serial.println(String(force));
   if ((timeChange >= SampleTime && activateTime) || force) {
     /*Compute all the working error variables*/
     double input = *myInput;

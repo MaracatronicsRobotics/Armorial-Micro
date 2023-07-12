@@ -1,7 +1,6 @@
 #include "controller.h"
-#include "encoder.h"
+#include "interpolation/interpolation.h"
 
-#include <InterpolationLib.h>
 #include <algorithm>
 
 // Interpolate points (radSec, PWM)
@@ -47,6 +46,9 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   controlPacket.vw3 = 0;
   controlPacket.vw4 = 0;
   setControlPacket(controlPacket);
+
+  _wheel1 = new PID_velocity();
+  _wheel2 = new PID_velocity();
 }
 
 void Controller::setControlPacket(const ControlPacket &controlPacket) {
@@ -55,42 +57,48 @@ void Controller::setControlPacket(const ControlPacket &controlPacket) {
 
 ControlPacket Controller::getControlPacket() { return _control_packet; }
 
-/// TODO: use PID class with captured Encoder class data
 void Controller::drive() {
-  // Make conversion from rad/s to PWM
-  float wheel_left_setpoint =
-      getControlPacket().vw1 > 0
-          ? Interpolation::ConstrainedSpline(interpolate_x, interpolate_y,
-                                             interpolate_numPoints,
-                                             getControlPacket().vw1)
-          : -Interpolation::ConstrainedSpline(interpolate_x, interpolate_y,
-                                              interpolate_numPoints,
-                                              abs(getControlPacket().vw1));
-  float wheel_right_setpoint =
-      getControlPacket().vw2 > 0
-          ? Interpolation::ConstrainedSpline(interpolate_x, interpolate_y,
-                                             interpolate_numPoints,
-                                             getControlPacket().vw2)
-          : -Interpolation::ConstrainedSpline(interpolate_x, interpolate_y,
-                                              interpolate_numPoints,
-                                              abs(getControlPacket().vw2));
 
-  // // Saturation
-  // wheel_left_setpoint = std::max(
-  //     -SATURATION_VALUE, std::min(wheel_left_setpoint, SATURATION_VALUE));
-  // wheel_right_setpoint = std::max(
-  //     -SATURATION_VALUE, std::min(wheel_right_setpoint, SATURATION_VALUE));
+  Serial.print("\n\n\nWheel2: ");
+  Serial.println(String(getControlPacket().vw2));
+
+  _wheel1->setSetPoint(abs(getControlPacket().vw1));
+  _wheel2->setSetPoint(abs(getControlPacket().vw2));
+
+  _wheel1->setInput(abs(_encoder->getAngularSpeedWL()));
+  _wheel2->setInput(abs(_encoder->getAngularSpeedWR()));
+  Serial.print("Wheel2 Encoder: ");
+  Serial.println(String(_encoder->getAngularSpeedWR()));
+
+  // PID compute
+  _wheel1->update();
+  _wheel2->update();
+  PID_velocity::setForce(false);
+
+  Serial.print("Wheel2 PID: ");
+  Serial.println(String(_wheel2->getOutput()));
+
+  // Make conversion from rad/s to PWM
+  int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
+      interpolate_x, interpolate_y, interpolate_numPoints,
+      _wheel1->getOutput())));
+  int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
+      interpolate_x, interpolate_y, interpolate_numPoints,
+      _wheel2->getOutput())));
+
+  Serial.print("Wheel2 PWM: ");
+  Serial.println(String(wheel_pwm_right));
 
   // Set PWM pin values
   ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID,
-            wheel_left_setpoint > 0 ? int(wheel_left_setpoint) : 0);
+            getControlPacket().vw1 > 0 ? wheel_pwm_left : 0);
   ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID,
-            wheel_left_setpoint <= 0 ? int(-wheel_left_setpoint) : 0);
+            getControlPacket().vw1 <= 0 ? wheel_pwm_left : 0);
 
   ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID,
-            wheel_right_setpoint > 0 ? int(wheel_right_setpoint) : 0);
+            getControlPacket().vw2 > 0 ? wheel_pwm_right : 0);
   ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID,
-            wheel_right_setpoint <= 0 ? int(-wheel_right_setpoint) : 0);
+            getControlPacket().vw2 <= 0 ? wheel_pwm_right : 0);
 }
 
 void Controller::setupPWMPins() {

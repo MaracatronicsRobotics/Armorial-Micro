@@ -1,12 +1,11 @@
 #ifndef ARMORIAL_SUASSUNA_PID_H
 #define ARMORIAL_SUASSUNA_PID_H
 
-#include "controller.h"
-#include <PID_v1.h>
+#include "pid_lib/pid_lib.h"
+
+#define ENCODER_RESOLUTION 10000 // microsseconds
 
 #define MAX_VEL 40.f
-
-// PID parameters
 
 class PID_velocity {
 public:
@@ -14,15 +13,14 @@ public:
   void setConsts(double kp, double ki, double kd);
   void setInput(double input) { _Input = input; }
   void setSetPoint(double setpoint) { _setPoint = setpoint; }
-  void setForce(bool force) { _computingForce = force; }
+  static void setForce(bool force);
   double getOutput() { return _Output; }
   void update();
 
 private:
   PID *_wheel;
-  double _Kp = 5.f, _Ki = 2.f, _Kd = 0.f;
+  double _Kp = 5.f, _Ki = 0.f, _Kd = 0.f;
   double _Input, _setPoint, _Output;
-  bool _computingForce = false;
 };
 
 #endif // ARMORIAL_SUASSUNA_PID_H

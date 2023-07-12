@@ -1,4 +1,6 @@
 #include "encoder.h"
+#include "pid/pid.h"
+#include "pid_lib/pid_lib.h"
 
 float Encoder::angular_speed_wl = 0.0f;
 float Encoder::angular_speed_wr = 0.0f;
@@ -18,6 +20,8 @@ void Encoder::computeEncoderCallback(void *arg) {
       (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f));
   encoder_count_wl = 0;
   encoder_count_wr = 0;
+
+  PID_velocity::setForce(true);
 
   if (callback != nullptr)
     callback();

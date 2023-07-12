@@ -1,6 +1,5 @@
-#ifndef PID_v1_h
-#define PID_v1_h
-#define LIBRARY_VERSION	1.2.1
+#ifndef pid_lib_h
+#define pid_lib_h
 
 class PID
 {

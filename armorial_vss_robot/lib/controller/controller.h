@@ -4,7 +4,7 @@
 #include <encoder.h>
 #include <esp32-hal-ledc.h>
 #include <packets/packets.h>
-#include <pid/pid.h>
+#include "pid/pid.h"
 
 #define WHEEL_LEFT_FORWARD_PIN 12
 #define WHEEL_LEFT_BACKWARD_PIN 13
@@ -23,7 +23,7 @@
 
 #define SATURATION_VALUE 250.0f
 
-class Controller {
+class Controller{
 public:
   Controller(Encoder *encoder);
 
@@ -38,7 +38,8 @@ public:
 private:
   Encoder *_encoder;
   ControlPacket _control_packet;
-
+  PID_velocity *_wheel1;
+  PID_velocity *_wheel2;
 };
 
 #endif // ARMORIAL_SUASSUNA_CONTROLLER_H
