@@ -1,7 +1,7 @@
 #ifndef ARMORIAL_SUASSUNA_PID_H
 #define ARMORIAL_SUASSUNA_PID_H
 
-#include "pid_lib/pid_lib.h"
+#include "pid_lib.h"
 
 #define ENCODER_RESOLUTION 10000 // microsseconds
 

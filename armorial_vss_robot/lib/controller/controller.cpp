@@ -1,7 +1,6 @@
 #include "controller.h"
-#include "interpolation/interpolation.h"
-
 #include <algorithm>
+#include <interpolation.h>
 
 // Interpolate points (radSec, PWM)
 double interpolate_x[] = {

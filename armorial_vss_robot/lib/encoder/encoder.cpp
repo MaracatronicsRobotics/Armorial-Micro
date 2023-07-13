@@ -1,6 +1,6 @@
 #include "encoder.h"
-#include "pid/pid.h"
-#include "pid_lib/pid_lib.h"
+#include "pid.h"
+#include "pid_lib.h"
 
 float Encoder::angular_speed_wl = 0.0f;
 float Encoder::angular_speed_wr = 0.0f;
