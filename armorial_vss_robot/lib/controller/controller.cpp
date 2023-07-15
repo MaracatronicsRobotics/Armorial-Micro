@@ -3,16 +3,11 @@
 #include <interpolation.h>
 
 // Interpolate points (radSec, PWM)
-double interpolate_x[] = {
-    3.f,         4.796164779, 7.414158654, 10.62905513, 15.55088362,
-    19.17418714, 22.15870016, 24.50442267, 26.51504197, 27.41563186,
-    28.64085299, 29.67757857, 30.72477612, 31.35309465, 32.18038071,
-    32.71445146, 33.11238653, 33.5103216,  33.86636877, 34.22241593,
-    34.54704717, 34.97639817, 35.35338929, 35.47905299, 36.36917091};
-double interpolate_y[] = {0.f,   40.0,  45.0,  50.0,  60.0,  70.0,  80.0,
-                          90.0,  100.0, 110.0, 120.0, 130.0, 140.0, 150.0,
-                          160.0, 170.0, 180.0, 190.0, 200.0, 210.0, 220.0,
-                          230.0, 240.0, 250.0, 255.0};
+double interpolate_x[] = {0.0,  3.69, 5.0,  10.0, 13.0,  16.0,  20.0, 22.0,
+                          23.0, 24.0, 25.0, 26.0, 26.92, 28.72, 30.0};
+double interpolate_y[] = {0.0,   60.0,  70.0,  80.0,  90.0,
+                          100.0, 110.0, 120.0, 130.0, 140.0,
+                          150.0, 170.0, 190.0, 220.0, 255.0};
 
 int interpolate_numPoints = sizeof(interpolate_x) / sizeof(interpolate_x[0]);
 
@@ -37,26 +32,36 @@ void Controller::setControlPacket(const ControlPacket &controlPacket) {
 
 ControlPacket Controller::getControlPacket() { return _control_packet; }
 
+void Controller::setLastControlPacket(const ControlPacket &controlPacket) {
+  _last_control_packet.solenoidPower = controlPacket.solenoidPower;
+  _last_control_packet.vw1 = controlPacket.vw1;
+  _last_control_packet.vw2 = controlPacket.vw2;
+  _last_control_packet.vw3 = controlPacket.vw3;
+  _last_control_packet.vw4 = controlPacket.vw4;
+}
+
 void Controller::drive() {
 
-  Serial.print("\n\n\nWheel2: ");
-  Serial.println(String(getControlPacket().vw2));
+  float vw1_comand, vw2_comand;
 
-  _wheel1->setSetPoint(abs(getControlPacket().vw1));
-  _wheel2->setSetPoint(abs(getControlPacket().vw2));
+  if(getControlPacket().vw1 == 0.f)
+    _last_control_packet.vw1 < 0.f ? vw1_comand = -ZERO : vw1_comand = ZERO;
+  else vw1_comand = getControlPacket().vw1;
+
+  if(getControlPacket().vw2 == 0.f || getControlPacket().vw2 == -0.f)
+    _last_control_packet.vw2 < 0.f ? vw2_comand = -ZERO : vw2_comand = ZERO;
+  else vw2_comand = getControlPacket().vw2;
+
+  _wheel1->setSetPoint(abs(vw1_comand));
+  _wheel2->setSetPoint(abs(vw2_comand));
 
   _wheel1->setInput(abs(_encoder->getAngularSpeedWL()));
   _wheel2->setInput(abs(_encoder->getAngularSpeedWR()));
-  Serial.print("Wheel2 Encoder: ");
-  Serial.println(String(_encoder->getAngularSpeedWR()));
 
   // PID compute
   _wheel1->update();
   _wheel2->update();
   PID_velocity::setForce(false);
-
-  Serial.print("Wheel2 PID: ");
-  Serial.println(String(_wheel2->getOutput()));
 
   // Make conversion from rad/s to PWM
   int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
@@ -66,19 +71,18 @@ void Controller::drive() {
       interpolate_x, interpolate_y, interpolate_numPoints,
       _wheel2->getOutput())));
 
-  Serial.print("Wheel2 PWM: ");
-  Serial.println(String(wheel_pwm_right));
+  setLastControlPacket(getControlPacket());
 
   // Set PWM pin values
   ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID,
-            getControlPacket().vw1 > 0 ? wheel_pwm_left : 0);
+            vw1_comand > 0 ? wheel_pwm_left : 0);
   ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID,
-            getControlPacket().vw1 <= 0 ? wheel_pwm_left : 0);
+            vw1_comand <= 0 ? wheel_pwm_left : 0);
 
   ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID,
-            getControlPacket().vw2 > 0 ? wheel_pwm_right : 0);
+            vw2_comand > 0 ? wheel_pwm_right : 0);
   ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID,
-            getControlPacket().vw2 <= 0 ? wheel_pwm_right : 0);
+            vw2_comand <= 0 ? wheel_pwm_right : 0);
 }
 
 void Controller::setupPWMPins() {

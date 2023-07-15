@@ -19,7 +19,7 @@ public:
 
 private:
   PID *_wheel;
-  double _Kp = 5.f, _Ki = 0.f, _Kd = 0.f;
+  double _Kp = 0.4f, _Ki = 5.97f, _Kd = 0.f;
   double _Input, _setPoint, _Output;
 };
 

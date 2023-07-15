@@ -28,6 +28,7 @@ public:
   Controller(Encoder *encoder);
 
   void setControlPacket(const ControlPacket &controlPacket);
+  void setLastControlPacket(const ControlPacket &controlPacket);
   ControlPacket getControlPacket();
 
   void drive();
@@ -38,6 +39,7 @@ public:
 private:
   Encoder *_encoder;
   ControlPacket _control_packet;
+  LastControlPacket _last_control_packet;
   PID_velocity *_wheel1;
   PID_velocity *_wheel2;
 };

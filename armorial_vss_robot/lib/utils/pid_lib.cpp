@@ -57,13 +57,12 @@ bool PID::Compute(bool activateTime, bool force) {
     return false;
   unsigned long now = millis();
   unsigned long timeChange = (now - lastTime);
-  Serial.println(String(force));
   if ((timeChange >= SampleTime && activateTime) || force) {
     /*Compute all the working error variables*/
     double input = *myInput;
     double error = *mySetpoint - input;
     double dInput = (input - lastInput);
-    outputSum += (ki * error);
+    outputSum += (ki * error * SampleTime);
 
     /*Add Proportional on Measurement, if P_ON_M is specified*/
     if (!pOnE)

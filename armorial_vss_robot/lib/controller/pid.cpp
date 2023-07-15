@@ -3,7 +3,7 @@
 bool _computingForce;
 
 PID_velocity::PID_velocity() {
-  _wheel = new PID(&_Input, &_Output, &_setPoint, _Kp, _Ki, _Kd, P_ON_M, DIRECT);
+  _wheel = new PID(&_Input, &_Output, &_setPoint, _Kp, _Ki, _Kd, P_ON_E, DIRECT);
   _wheel->SetMode(AUTOMATIC);
   _wheel->SetOutputLimits(0.f, MAX_VEL);
   _wheel->SetSampleTime(ENCODER_RESOLUTION / 1000);
