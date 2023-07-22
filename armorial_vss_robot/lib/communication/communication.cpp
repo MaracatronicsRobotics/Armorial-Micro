@@ -22,7 +22,6 @@ void Communication::setupEspNow() {
   ESP_ERROR_CHECK(esp_wifi_start());
   ESP_ERROR_CHECK(
       esp_wifi_set_channel(CONFIG_WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE));
-  ESP_ERROR_CHECK(esp_wifi_set_max_tx_power(84));
 
   // Init ESP-NOW
   ESP_ERROR_CHECK(esp_now_init());

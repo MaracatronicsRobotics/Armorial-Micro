@@ -62,16 +62,18 @@ bool PID::Compute(bool activateTime, bool force) {
     double input = *myInput;
     double error = *mySetpoint - input;
     double dInput = (input - lastInput);
+    //if(error < 3.8f) outputSum = 0.f;
     outputSum += (ki * error * SampleTime);
+    outputSum *= 0.9f;
 
     /*Add Proportional on Measurement, if P_ON_M is specified*/
     if (!pOnE)
       outputSum -= kp * dInput;
 
-    if (outputSum > outMax)
-      outputSum = outMax;
-    else if (outputSum < outMin)
-      outputSum = outMin;
+    if (outputSum > 5.0f)
+      outputSum = 5.0f;
+    else if (outputSum < -5.0f)
+      outputSum = -5.0f;
 
     /*Add Proportional on Error, if P_ON_E is specified*/
     double output;

@@ -3,9 +3,9 @@
 
 #include "pid_lib.h"
 
-#define ENCODER_RESOLUTION 10000 // microsseconds
+#define ENCODER_RESOLUTION 20000 // microsseconds
 
-#define MAX_VEL 40.f
+#define MAX_VEL 30.f
 
 class PID_velocity {
 public:
@@ -19,7 +19,7 @@ public:
 
 private:
   PID *_wheel;
-  double _Kp = 0.4f, _Ki = 5.97f, _Kd = 0.f;
+  double _Kp = 1.0f, _Ki = 0.0f, _Kd = 0.0f;
   double _Input, _setPoint, _Output;
 };
 
