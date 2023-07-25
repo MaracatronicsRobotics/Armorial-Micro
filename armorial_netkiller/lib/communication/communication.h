@@ -29,7 +29,7 @@ inline ControlPacket generateControlGarbage() {
 
 inline FeedbackPacket generateFeedbackGarbage() {
   FeedbackPacket garbagePacket;
-  garbagePacket.control = '0';
+  garbagePacket.control = '5';
   garbagePacket.batteryPercentage = std::rand() % 100;
   garbagePacket.infraRedStatus = std::rand() % 2;
   float garbageFloat[4] = {0.0, 0.0, 0.0, 0.0};
@@ -45,39 +45,35 @@ inline FeedbackPacket generateFeedbackGarbage() {
   garbagePacket.vw3_encoder = garbageFloat[2];
   garbagePacket.vw4_encoder = garbageFloat[3];
   garbagePacket.timestamp = std::rand() % 1000000;
-  garbagePacket.crc = 54321;
+  garbagePacket.crc = std::rand() % 1000000;
 
   return garbagePacket;
 }
 
-inline uint8_t generateGarbage() {
-  return std::rand() % 255;
-}
+inline uint8_t generateGarbage() { return std::rand() % 255; }
 
 inline void SendGarbage(int timeOut = 1) {
   Serial.println("Sending garbage");
   esp_timer_handle_t espTimerHandle;
   const esp_timer_create_args_t espTimerCreateArgs = {
-    .callback = &timer_callback,
-    .arg = (void*) espTimerHandle,
-    .name = "timer"
-  };
+      .callback = &timer_callback,
+      .arg = (void *)espTimerHandle,
+      .name = "timer"};
   ESP_ERROR_CHECK(esp_timer_create(&espTimerCreateArgs, &espTimerHandle));
   ESP_ERROR_CHECK(esp_timer_start_once(espTimerHandle, timeOut * 1000000));
 
   uint8_t broadcastMacAddress[MAC_ADDR_SIZE] = BROADCAST_ADDRESS;
-  //FeedbackPacket garbagePacket = generateFeedbackGarbage();
-  //ControlPacket garbagePacket = generateControlGarbage();
+  // FeedbackPacket garbagePacket = generateFeedbackGarbage();
+  // ControlPacket garbagePacket = generateControlGarbage();
   uint8_t garbagePacket = generateGarbage();
+  size_t garbageSize = std::rand() % 100 + 1;
 
   while (esp_timer_is_active(espTimerHandle)) {
-    esp_err_t ret = esp_now_send(broadcastMacAddress, &garbagePacket,
-                                 sizeof(FeedbackPacket));
+    esp_err_t ret =
+        esp_now_send(broadcastMacAddress, &garbagePacket, garbageSize);
   }
 }
 
-static void timer_callback(void *arg) {
-  Serial.println("Timer expired");
-}
+static void timer_callback(void *arg) { Serial.println("Timer expired"); }
 
 #endif /* ARMORIAL_SUASSUNA_COMMUNICATION */
