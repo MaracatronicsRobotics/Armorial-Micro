@@ -64,12 +64,19 @@ void Controller::drive() {
   PID_velocity::setForce(false);
 
   // Make conversion from rad/s to PWM
+  // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
+  //     interpolate_x, interpolate_y, interpolate_numPoints,
+  //     _wheel1->getOutput())));
+  // int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
+  //     interpolate_x, interpolate_y, interpolate_numPoints,
+  //     _wheel2->getOutput())));
+
   int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
       interpolate_x, interpolate_y, interpolate_numPoints,
-      _wheel1->getOutput())));
+      abs(vw1_comand))));
   int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
       interpolate_x, interpolate_y, interpolate_numPoints,
-      _wheel2->getOutput())));
+      abs(vw2_comand))));
 
   setLastControlPacket(getControlPacket());
 

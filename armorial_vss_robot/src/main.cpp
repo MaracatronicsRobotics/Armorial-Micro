@@ -45,4 +45,23 @@ void setup() {
   Communication::setupEspNow();
 }
 
-void loop() { controller->drive(); }
+void loop() {
+  controller->drive();
+  // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 255);
+  // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 0);
+
+
+  // ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, 255);
+  // ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, 0);
+
+  // delay(5000);
+
+  // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 0);
+  // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 255);
+
+
+  // ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, 0);
+  // ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, 255);
+  
+  // delay(5000);
+}
