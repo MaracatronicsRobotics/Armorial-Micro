@@ -19,6 +19,8 @@ public:
   static void computeMPUCallback(void *arg);
   static float getComputedAngleCorrection();
   static float getComputedPitchOutput();
+  static void start();
+  static void stop();
 
 protected:
   static void readFromMPU();
@@ -47,6 +49,7 @@ private:
   static float integral;
   static float derivative;
   static float last_error;
+  static esp_timer_handle_t _timer;
 };
 
 #endif // ARMORIAL_SUASSUNA_MPU_H

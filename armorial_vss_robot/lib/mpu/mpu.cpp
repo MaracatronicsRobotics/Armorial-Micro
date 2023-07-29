@@ -23,6 +23,7 @@ float MPU::error = 0.0f;
 float MPU::integral = 0.0f;
 float MPU::derivative = 0.0f;
 float MPU::last_error = 0.0f;
+esp_timer_handle_t MPU::_timer = {};
 
 void MPU::setup() {
   _mpu.begin();
@@ -48,11 +49,19 @@ void MPU::setup() {
   _gyro_y_calibration /= 1000;
   _gyro_z_calibration /= 1000;
 
-  esp_timer_handle_t encoder_timer;
+  // Setup timer
   esp_timer_create_args_t encoder_timer_args = {
       .callback = &MPU::computeMPUCallback, .name = "mpu"};
-  ESP_ERROR_CHECK(esp_timer_create(&encoder_timer_args, &encoder_timer));
-  ESP_ERROR_CHECK(esp_timer_start_periodic(encoder_timer, MPU_RESOLUTION));
+  ESP_ERROR_CHECK(esp_timer_create(&encoder_timer_args, &_timer));
+}
+
+void MPU::start() {
+  ESP_ERROR_CHECK(esp_timer_start_periodic(_timer, MPU_RESOLUTION));
+}
+
+void MPU::stop() {
+  ESP_ERROR_CHECK(esp_timer_stop(_timer));
+  integral = 0.0f;
 }
 
 void MPU::readFromMPU() {
@@ -76,7 +85,9 @@ void MPU::computeMPUCallback(void *arg) {
   _gyro_y -= _gyro_y_calibration;
   _gyro_z -= _gyro_z_calibration;
 
-  // Calculate the traveled pitch angle and add this to the angle_pitch variable
+  // Gyro angle calculations . Note 0.0000611 = 1 / (250Hz x 65.5)
+  //  Calculate the traveled pitch angle and add this to the angle_pitch
+  //  variable
   _angle_pitch += _gyro_x * 0.0000611;
   // Calculate the traveled roll angle and add this to the angle_roll variable
   // 0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is
