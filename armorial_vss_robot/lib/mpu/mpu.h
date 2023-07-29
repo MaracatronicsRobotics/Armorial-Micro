@@ -50,6 +50,7 @@ private:
   static float derivative;
   static float last_error;
   static esp_timer_handle_t _timer;
+  static bool _startedTimer;
 };
 
 #endif // ARMORIAL_SUASSUNA_MPU_H

@@ -23,6 +23,7 @@ float MPU::error = 0.0f;
 float MPU::integral = 0.0f;
 float MPU::derivative = 0.0f;
 float MPU::last_error = 0.0f;
+bool MPU::_startedTimer = false;
 esp_timer_handle_t MPU::_timer = {};
 
 void MPU::setup() {
@@ -56,12 +57,18 @@ void MPU::setup() {
 }
 
 void MPU::start() {
-  ESP_ERROR_CHECK(esp_timer_start_periodic(_timer, MPU_RESOLUTION));
+  if (!_startedTimer) {
+    ESP_ERROR_CHECK(esp_timer_start_periodic(_timer, MPU_RESOLUTION));
+    _startedTimer = true;
+  }
 }
 
 void MPU::stop() {
-  ESP_ERROR_CHECK(esp_timer_stop(_timer));
-  integral = 0.0f;
+  if (_startedTimer) {
+    ESP_ERROR_CHECK(esp_timer_stop(_timer));
+    integral = 0.0f;
+    _startedTimer = false;
+  }
 }
 
 void MPU::readFromMPU() {
