@@ -112,11 +112,16 @@ void MPU::computeMPUCallback(void *arg) {
   float acc_total_vector =
       sqrt((_acc_x * _acc_x) + (_acc_y * _acc_y) + (_acc_z * _acc_z));
 
-  // 57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
-  // Calculate the pitch angle
-  _angle_pitch_acc = asin((float)_acc_y / acc_total_vector) * 57.296;
-  // Calculate the roll angle
-  _angle_roll_acc = asin((float)_acc_x / acc_total_vector) * -57.296;
+  if (acc_total_vector < 0.00001) {
+    _angle_pitch_acc = asin(0) * 57.296;
+    _angle_roll_acc = asin(0) * -57.296;
+  } else {
+    // 57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
+    // Calculate the pitch angle
+    _angle_pitch_acc = asin((float)_acc_y / acc_total_vector) * 57.296;
+    // Calculate the roll angle
+    _angle_roll_acc = asin((float)_acc_x / acc_total_vector) * -57.296;
+  }
 
   // Accelerometer calibration value for pitch
   _angle_pitch_acc -= 0.0;
