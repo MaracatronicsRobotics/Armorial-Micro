@@ -1,6 +1,7 @@
 #include "controller.h"
 #include <algorithm>
 #include <interpolation.h>
+#include <mpu.h>
 
 // Interpolate points (radSec, PWM)
 double interpolate_x[] = {0.0,  3.69, 5.0,  10.0, 13.0,  16.0,  20.0, 22.0,
@@ -44,13 +45,18 @@ void Controller::drive() {
 
   float vw1_comand, vw2_comand;
 
-  if(getControlPacket().vw1 == 0.f)
+  if (getControlPacket().vw1 == 0.f)
     _last_control_packet.vw1 < 0.f ? vw1_comand = -ZERO : vw1_comand = ZERO;
-  else vw1_comand = getControlPacket().vw1;
+  else
+    vw1_comand = getControlPacket().vw1;
 
-  if(getControlPacket().vw2 == 0.f || getControlPacket().vw2 == -0.f)
+  if (getControlPacket().vw2 == 0.f || getControlPacket().vw2 == -0.f)
     _last_control_packet.vw2 < 0.f ? vw2_comand = -ZERO : vw2_comand = ZERO;
-  else vw2_comand = getControlPacket().vw2;
+  else
+    vw2_comand = getControlPacket().vw2;
+
+  float vw =
+      (getControlPacket().vw1 + getControlPacket().vw2) / (2 * 0.075f * 0.053f);
 
   _wheel1->setSetPoint(abs(vw1_comand));
   _wheel2->setSetPoint(abs(vw2_comand));
@@ -72,24 +78,28 @@ void Controller::drive() {
   //     _wheel2->getOutput())));
 
   int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
-      interpolate_x, interpolate_y, interpolate_numPoints,
-      abs(vw1_comand))));
+      interpolate_x, interpolate_y, interpolate_numPoints, abs(vw1_comand))));
   int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
-      interpolate_x, interpolate_y, interpolate_numPoints,
-      abs(vw2_comand))));
+      interpolate_x, interpolate_y, interpolate_numPoints, abs(vw2_comand))));
+
+  if (fabs(vw) <= (10 * M_PI / 180.0)) {
+    if (MPU::getComputedPitchOutput() < 0.0) {
+      wheel_pwm_left -= fabs(MPU::getComputedAngleCorrection());
+      wheel_pwm_right += fabs(MPU::getComputedAngleCorrection());
+    } else {
+      wheel_pwm_left += fabs(MPU::getComputedAngleCorrection());
+      wheel_pwm_right -= fabs(MPU::getComputedAngleCorrection());
+    }
+  }
 
   setLastControlPacket(getControlPacket());
 
   // Set PWM pin values
-  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID,
-            vw1_comand > 0 ? wheel_pwm_left : 0);
-  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID,
-            vw1_comand <= 0 ? wheel_pwm_left : 0);
+  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, vw1_comand > 0 ? wheel_pwm_left : 0);
+  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, vw1_comand <= 0 ? wheel_pwm_left : 0);
 
-  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID,
-            vw2_comand > 0 ? wheel_pwm_right : 0);
-  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID,
-            vw2_comand <= 0 ? wheel_pwm_right : 0);
+  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, vw2_comand > 0 ? wheel_pwm_right : 0);
+  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, vw2_comand <= 0 ? wheel_pwm_right : 0);
 }
 
 void Controller::setupPWMPins() {

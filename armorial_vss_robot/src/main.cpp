@@ -2,6 +2,7 @@
 #include <controller.h>
 #include <crc/crc.h>
 #include <encoder.h>
+#include <mpu.h>
 
 Encoder *encoder = new Encoder();
 Controller *controller = new Controller(encoder);
@@ -37,6 +38,8 @@ void setup() {
   Controller::setupHBridge();
   Controller::setupPWMPins();
 
+  MPU::setup();
+
   // Setup encoder
   Encoder::setup();
   Encoder::registerCallback(sendEncoderFeedback);
@@ -50,7 +53,6 @@ void loop() {
   // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 255);
   // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 0);
 
-
   // ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, 255);
   // ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, 0);
 
@@ -59,9 +61,8 @@ void loop() {
   // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 0);
   // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 255);
 
-
   // ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, 0);
   // ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, 255);
-  
+
   // delay(5000);
 }
