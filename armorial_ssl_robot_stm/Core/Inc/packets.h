@@ -1,13 +1,15 @@
+/*
+ * packets.h
+ *
+ *  Created on: Aug 5, 2023
+ *      Author: zsmn
+ */
+
 #ifndef ARMORIAL_SUASSUNA_PACKETS_H
 #define ARMORIAL_SUASSUNA_PACKETS_H
 
 #include <stdint.h>
 
-#define MAX_NUM_ROBOTS 6
-#define LEFT_DELIMITER std::string("<<<")
-#define RIGHT_DELIMITER std::string(">>>")
-
-// Feedback packet
 typedef struct {
   char control;
   uint8_t batteryPercentage;
@@ -18,7 +20,6 @@ typedef struct {
   uint16_t crc;
 } FeedbackPacket;
 
-// Control packet
 typedef struct {
   char control;
   float vw1, vw2, vw3, vw4;

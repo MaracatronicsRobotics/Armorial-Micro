@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 #define ROBOT_ID 0
-#define ZERO 0.001
 
 typedef struct {
   char control = ROBOT_ID;
@@ -23,10 +22,5 @@ typedef struct {
   char solenoidPower = 0;
   uint16_t crc = 0;
 } ControlPacket;
-
-typedef struct {
-  float vw1 = 0, vw2 = 0, vw3 = 0, vw4 = 0;
-  char solenoidPower = 0;
-} LastControlPacket;
 
 #endif // ARMORIAL_SUASSUNA_PACKETS_H
