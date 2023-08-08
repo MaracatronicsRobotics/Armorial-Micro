@@ -15,7 +15,7 @@
 
 #define PULSES_PER_REVOLUTION 7
 #define GEAR_RATIO 100
-#define ENCODER_RESOLUTION 1000000 // microsseconds
+#define ENCODER_RESOLUTION 10000 // microsseconds
 
 #define ENCODER_CALLS_BEFORE_FEEDBACK 1
 

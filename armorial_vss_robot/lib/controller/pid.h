@@ -3,7 +3,7 @@
 
 #include "pid_lib.h"
 
-#define ENCODER_RESOLUTION 1000000 // microsseconds
+#define ENCODER_RESOLUTION 10000 // microsseconds
 
 #define MAX_VEL 30.f
 

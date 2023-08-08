@@ -82,19 +82,6 @@ void Controller::drive() {
   int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
       interpolate_x, interpolate_y, interpolate_numPoints, abs(vw2_comand))));
 
-  if (fabs(vw) <= (10 * M_PI / 180.0)) {
-    MPU::start();
-    if (MPU::getComputedPitchOutput() < 0.0) {
-      wheel_pwm_left -= fabs(MPU::getComputedAngleCorrection());
-      wheel_pwm_right += fabs(MPU::getComputedAngleCorrection());
-    } else {
-      wheel_pwm_left += fabs(MPU::getComputedAngleCorrection());
-      wheel_pwm_right -= fabs(MPU::getComputedAngleCorrection());
-    }
-  } else {
-    MPU::stop();
-  }
-
   setLastControlPacket(getControlPacket());
 
   // Set PWM pin values

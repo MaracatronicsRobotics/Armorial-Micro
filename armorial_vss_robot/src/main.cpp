@@ -38,7 +38,9 @@ void setup() {
   Controller::setupHBridge();
   Controller::setupPWMPins();
 
+  // Setup MPU
   MPU::setup();
+  MPU::start();
 
   // Setup encoder
   Encoder::setup();
