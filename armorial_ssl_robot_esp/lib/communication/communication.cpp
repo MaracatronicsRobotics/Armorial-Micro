@@ -40,6 +40,7 @@ bool Communication::sendFeedbackPacket(const FeedbackPacket &feedbackPacket) {
 
 void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
                                        unsigned char len) {
+  digitalWrite(LED_BUILTIN, LOW);
   if (len == sizeof(ControlPacket)) {
     ControlPacket controlPacket;
     memcpy(&controlPacket, incomingData, sizeof(ControlPacket));
@@ -63,6 +64,7 @@ void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
       uint8_t robotId = controlPacket.control & 0x0F;
       if (robotId == ROBOT_ID) {
         I2C::sendControlPacket(controlPacket);
+        digitalWrite(LED_BUILTIN, HIGH);
       }
     }
   }
