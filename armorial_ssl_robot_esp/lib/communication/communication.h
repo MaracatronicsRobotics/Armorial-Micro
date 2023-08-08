@@ -1,15 +1,15 @@
 #ifndef ARMORIAL_SUASSUNA_COMMUNICATION_H
 #define ARMORIAL_SUASSUNA_COMMUNICATION_H
 
-#include <WiFi.h>
-#include <esp_now.h>
+#include <Ticker.h>
+#include <espnow.h>
 #include <packets/packets.h>
 
 #define CONFIG_WIFI_CHANNEL 11
 #define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
 
-#define FEEDBACK_TIME 1000000 // microseconds
+#define FEEDBACK_TIME 1.0 // seconds
 
 class Communication {
 public:
@@ -17,19 +17,19 @@ public:
   static void setupEspNow();
   static void setupFeedbacks();
 
-  static esp_err_t sendFeedbackPacket(const FeedbackPacket &feedbackPacket);
+  static bool sendFeedbackPacket(const FeedbackPacket &feedbackPacket);
 
 protected:
-  static void EspNowDataReceived(const uint8_t *mac,
-                                 const uint8_t *incomingData, int len);
+  static void EspNowDataReceived(u8 *mac, u8 *incomingData, unsigned char len);
 
   static bool checkIfMacIsBaseStation(const uint8_t *mac);
 
-  static void computeFeedbackCallback(void *arg);
+  static void computeFeedbackCallback();
 
 private:
-  static esp_now_peer_info_t baseStationPeerInfo;
+  static u8 baseStationMacAddr[6];
   static bool receivedFromBaseStation;
+  static Ticker feedbackTimer;
 };
 
 #endif // ARMORIAL_SUASSUNA_COMMUNICATION_H
