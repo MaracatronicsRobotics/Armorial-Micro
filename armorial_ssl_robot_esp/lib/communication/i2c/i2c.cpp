@@ -10,6 +10,7 @@ void I2C::initialize() {
   pinMode(SDA_PIN, INPUT_PULLUP);
   pinMode(SCL_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 
   Wire.setClock(I2C_FREQUENCY_HZ);
   Wire.begin(SDA_PIN, SCL_PIN);

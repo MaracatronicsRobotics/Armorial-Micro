@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "crc.h"
@@ -108,6 +109,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 1);
+  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
+  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 1);
+
+  HAL_Delay(1500);
+
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 0);
+  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 0);
+  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 0);
   while (1) {
 	  if(getMasterInput) {
 		  getMasterInput = 0;
@@ -130,6 +142,17 @@ int main(void)
 		memcpy(&controlPacket, rxBuffer, sizeof(ControlPacket));
 		if(validatePacketCRC(controlPacket)) {
 			/// TODO: process this packet with a method call (?)
+			if (controlPacket.vw1 > 0.1) {
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+				HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 1);
+				HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
+				HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 1);
+			} else {
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+				HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 0);
+				HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 0);
+				HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 0);
+			}
 		}
 	  }
 
@@ -226,12 +249,45 @@ static void MX_I2C1_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|LED2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : FWD_REV_M1_Pin */
+  GPIO_InitStruct.Pin = FWD_REV_M1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(FWD_REV_M1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EN_M1_Pin LED2_Pin */
+  GPIO_InitStruct.Pin = EN_M1_Pin|LED2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PWM_M1_Pin */
+  GPIO_InitStruct.Pin = PWM_M1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PWM_M1_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

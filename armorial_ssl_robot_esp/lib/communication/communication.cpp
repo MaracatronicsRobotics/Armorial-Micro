@@ -74,4 +74,13 @@ bool Communication::checkIfMacIsBaseStation(const uint8_t *mac) {
   return memcmp(mac, baseStationMacAddr, 6) == 0;
 }
 
-void Communication::computeFeedbackCallback() { I2C::getFeedbackPacket(); }
+void Communication::computeFeedbackCallback() { 
+  FeedbackPacket packet;
+  packet.crc = 0;
+  packet.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*) &packet, sizeof(FeedbackPacket));
+
+  if (validatePacketCRC(packet)) {
+    Communication::sendFeedbackPacket(packet);
+  }
+  // I2C::getFeedbackPacket();
+ }
