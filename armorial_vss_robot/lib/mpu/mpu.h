@@ -5,9 +5,6 @@
 #define PIN_MPU_SDA 21
 
 #define MPU_RESOLUTION 10000
-#define MPU_KP 11
-#define MPU_KI 0.09
-#define MPU_KD 0
 
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>

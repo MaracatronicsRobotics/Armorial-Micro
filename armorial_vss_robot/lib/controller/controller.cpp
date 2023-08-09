@@ -1,7 +1,6 @@
 #include "controller.h"
 #include <algorithm>
 #include <interpolation.h>
-#include <mpu.h>
 
 // Interpolate points (radSec, PWM)
 double interpolate_x[] = {0.0,  3.69, 5.0,  10.0, 13.0,  16.0,  20.0, 22.0,
@@ -23,8 +22,10 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   controlPacket.vw4 = 0;
   setControlPacket(controlPacket);
 
-  _wheel1 = new PID_velocity();
-  _wheel2 = new PID_velocity();
+  _wheel1 = new PID();
+  _wheel2 = new PID();
+
+  _mpu = new MPU();
 }
 
 void Controller::setControlPacket(const ControlPacket &controlPacket) {
@@ -58,16 +59,19 @@ void Controller::drive() {
   float vw =
       (getControlPacket().vw1 + getControlPacket().vw2) / (2 * 0.075f * 0.053f);
 
-  _wheel1->setSetPoint(abs(vw1_comand));
-  _wheel2->setSetPoint(abs(vw2_comand));
+  // PID set points
+  _wheel1->setSetPoint(vw1_comand);
+  _wheel2->setSetPoint(vw2_comand);
 
-  _wheel1->setInput(abs(_encoder->getAngularSpeedWL()));
-  _wheel2->setInput(abs(_encoder->getAngularSpeedWR()));
+  // PID actual values
+  float wheel1W = -_mpu->getGyroZ() * 0.075f / 0.053f;
+  float wheel2W = _mpu->getGyroZ() * 0.075f / 0.053f;
+  _wheel1->setActualValue(wheel1W);
+  _wheel2->setActualValue(wheel2W);
 
-  // PID compute
-  _wheel1->update();
-  _wheel2->update();
-  PID_velocity::setForce(false);
+  // PID output
+  float wheel1Output = _wheel1->getOutput();
+  float wheel2Output = _wheel2->getOutput();
 
   // Make conversion from rad/s to PWM
   // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(

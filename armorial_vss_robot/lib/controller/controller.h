@@ -1,7 +1,8 @@
-#ifndef ARMORIAL_SUASSUNA_CONTROLLER_H
-#define ARMORIAL_SUASSUNA_CONTROLLER_H
+#ifndef ARMORIAL_SUASSUNA_CONTROLLER
+#define ARMORIAL_SUASSUNA_CONTROLLER
 
 #include "pid.h"
+#include <mpu.h>
 #include <encoder.h>
 #include <esp32-hal-ledc.h>
 #include <packets/packets.h>
@@ -38,10 +39,11 @@ public:
 
 private:
   Encoder *_encoder;
+  MPU *_mpu;
   ControlPacket _control_packet;
   LastControlPacket _last_control_packet;
-  PID_velocity *_wheel1;
-  PID_velocity *_wheel2;
+  PID *_wheel1;
+  PID *_wheel2;
 };
 
-#endif // ARMORIAL_SUASSUNA_CONTROLLER_H
+#endif /* ARMORIAL_SUASSUNA_CONTROLLER */

@@ -1,26 +1,28 @@
 #ifndef ARMORIAL_SUASSUNA_PID_H
 #define ARMORIAL_SUASSUNA_PID_H
 
-#include "pid_lib.h"
-
 #define ENCODER_RESOLUTION 10000 // microsseconds
 
 #define MAX_VEL 30.f
 
-class PID_velocity {
+class PID {
 public:
-  PID_velocity();
-  void setConsts(double kp, double ki, double kd);
-  void setInput(double input) { _Input = input; }
-  void setSetPoint(double setpoint) { _setPoint = setpoint; }
-  static void setForce(bool force);
-  double getOutput() { return _Output; }
-  void update();
+  PID();
+  void setSetPoint(float setPoint);
+  void setActualValue(float actualValue);
+  void setConstants(float kp, float ki, float kd);
+  void setOutputLimits(float min, float max);
+  float getOutput();
 
 private:
-  PID *_wheel;
-  double _Kp = 1.0f, _Ki = 0.0f, _Kd = 0.0f;
-  double _Input, _setPoint, _Output;
+  // Errors
+  float _errorSum = 0.0f;
+  float _lastError = 0.0f;
+
+  // Constants
+  float _Kp, _Ki, _Kd;
+  float _minOutput, _maxOutput;
+  float _setPoint, _actualValue;
 };
 
 #endif // ARMORIAL_SUASSUNA_PID_H

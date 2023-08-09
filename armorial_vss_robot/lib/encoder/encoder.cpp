@@ -21,8 +21,6 @@ void Encoder::computeEncoderCallback(void *arg) {
   encoder_count_wl = 0;
   encoder_count_wr = 0;
 
-  PID_velocity::setForce(true);
-
   if (callback != nullptr)
     callback();
 }

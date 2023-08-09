@@ -12,7 +12,7 @@ void MPU::setup() {
   _mpu.begin();
   _mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   _mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  _mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
+  _mpu.setFilterBandwidth(MPU6050_BAND_94_HZ);
 
   // Setup timer
   esp_timer_create_args_t encoder_timer_args = {
