@@ -57,14 +57,32 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define FWD_REV_M2_Pin GPIO_PIN_6
+#define FWD_REV_M2_GPIO_Port GPIOE
+#define EN_M2_Pin GPIO_PIN_0
+#define EN_M2_GPIO_Port GPIOC
 #define FWD_REV_M1_Pin GPIO_PIN_2
 #define FWD_REV_M1_GPIO_Port GPIOC
 #define EN_M1_Pin GPIO_PIN_4
 #define EN_M1_GPIO_Port GPIOA
+#define PWM_M2_Pin GPIO_PIN_6
+#define PWM_M2_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_7
 #define LED2_GPIO_Port GPIOA
 #define PWM_M1_Pin GPIO_PIN_0
 #define PWM_M1_GPIO_Port GPIOB
+#define PWM_M3_Pin GPIO_PIN_7
+#define PWM_M3_GPIO_Port GPIOC
+#define PWM_M4_Pin GPIO_PIN_9
+#define PWM_M4_GPIO_Port GPIOC
+#define FWD_REV_M3_Pin GPIO_PIN_11
+#define FWD_REV_M3_GPIO_Port GPIOA
+#define EN_M3_Pin GPIO_PIN_4
+#define EN_M3_GPIO_Port GPIOD
+#define FWD_REV_M4_Pin GPIO_PIN_6
+#define FWD_REV_M4_GPIO_Port GPIOD
+#define EN_M4_Pin GPIO_PIN_3
+#define EN_M4_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

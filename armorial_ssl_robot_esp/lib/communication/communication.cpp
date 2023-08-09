@@ -20,6 +20,7 @@ void Communication::setupEspNow() {
     ESP.restart();
     return;
   }
+  esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
 
   // Setup data receive callback
   esp_now_register_recv_cb(&Communication::EspNowDataReceived);
@@ -34,8 +35,13 @@ bool Communication::sendFeedbackPacket(const FeedbackPacket &feedbackPacket) {
     return false;
   }
 
-  return (esp_now_send(baseStationMacAddr, (uint8_t *)&feedbackPacket,
-                       sizeof(FeedbackPacket)) == ERR_OK);
+  Serial.println("send");
+
+  int ret = esp_now_send(baseStationMacAddr, (uint8_t *)&feedbackPacket,
+                         sizeof(FeedbackPacket));
+  Serial.println(ret);
+
+  return (ret == ERR_OK);
 }
 
 void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
@@ -53,8 +59,10 @@ void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
         memcpy(baseStationMacAddr, mac, 6);
 
         // Add peer
-        esp_now_add_peer(baseStationMacAddr, ESP_NOW_ROLE_SLAVE,
-                         CONFIG_ESPNOW_CHANNEL, NULL, 0);
+        int ret = esp_now_add_peer(baseStationMacAddr, ESP_NOW_ROLE_CONTROLLER,
+                                   CONFIG_ESPNOW_CHANNEL, NULL, 0);
+        Serial.println("fon = ");
+        Serial.println(ret);
       }
 
       if (!checkIfMacIsBaseStation(mac)) {
@@ -74,13 +82,4 @@ bool Communication::checkIfMacIsBaseStation(const uint8_t *mac) {
   return memcmp(mac, baseStationMacAddr, 6) == 0;
 }
 
-void Communication::computeFeedbackCallback() { 
-  FeedbackPacket packet;
-  packet.crc = 0;
-  packet.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*) &packet, sizeof(FeedbackPacket));
-
-  if (validatePacketCRC(packet)) {
-    Communication::sendFeedbackPacket(packet);
-  }
-  // I2C::getFeedbackPacket();
- }
+void Communication::computeFeedbackCallback() { I2C::getFeedbackPacket(); }

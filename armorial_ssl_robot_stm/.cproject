@@ -161,7 +161,7 @@
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry"/>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="armorial_ssl_robot_stmc.null.163562203" name="armorial_ssl_robot_stm"/>
+		<project id="armorial_ssl_robot_stm.null.163562203" name="armorial_ssl_robot_stm"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="scannerConfiguration">

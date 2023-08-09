@@ -7,7 +7,7 @@ uint64_t Communication::lastFeedbackTimestamp[MAX_NUM_ROBOTS] = {0};
 bool Communication::canSendFeedbacks = false;
 std::string Communication::feedbacksBuffer[MAX_NUM_ROBOTS] = {};
 
-//uint8_t broadcastAddr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+// uint8_t broadcastAddr[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 Communication::Communication() {}
 
@@ -70,8 +70,8 @@ bool Communication::processSerial(std::string &data) {
         esp_err_t ret =
             esp_now_send(robotMacAddress, (uint8_t *)packetToValidate.c_str(),
                          sizeof(ControlPacket));
-          //esp_now_send(broadcastAddr, (uint8_t *)packetToValidate.c_str(),
-          //               sizeof(ControlPacket));
+        // esp_now_send(broadcastAddr, (uint8_t *)packetToValidate.c_str(),
+        //                sizeof(ControlPacket));
         parsedPacket = true;
       }
     }

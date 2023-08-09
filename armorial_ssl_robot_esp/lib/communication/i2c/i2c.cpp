@@ -21,7 +21,7 @@ void I2C::sendControlPacket(const ControlPacket &controlPacket) {
   Wire.beginTransmission(STM_I2C_ADDRESS);
   uint8_t buffer[1024];
   memcpy(buffer, &controlPacket, pktSize);
-  Wire.write(buffer, pktSize);
+  uint8_t b = Wire.write(buffer, pktSize);
   Wire.endTransmission();
 }
 

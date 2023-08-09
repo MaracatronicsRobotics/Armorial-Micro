@@ -44,6 +44,7 @@ uint8_t getControlAvailable = 0;
 uint8_t rxBuffer[1024];
 uint8_t txBuffer[1024];
 FeedbackPacket robotFeedback;
+uint8_t robotId = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -109,21 +110,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 1);
-  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
-  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 1);
-
-  HAL_Delay(1500);
-
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 0);
-  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 0);
-  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 0);
   while (1) {
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
+			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
 			  	robotFeedback.timestamp = HAL_GetTick() * 1000; // microsecond
 			  	robotFeedback.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*)&robotFeedback, sizeof(FeedbackPacket));
@@ -142,16 +134,42 @@ int main(void)
 		memcpy(&controlPacket, rxBuffer, sizeof(ControlPacket));
 		if(validatePacketCRC(controlPacket)) {
 			/// TODO: process this packet with a method call (?)
-			if (controlPacket.vw1 > 0.1) {
+			if(controlPacket.vw1 > 1.0) {
 				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 				HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 1);
 				HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
 				HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 1);
-			} else {
+
+				HAL_GPIO_WritePin(PWM_M2_GPIO_Port, PWM_M2_Pin, 1);
+				HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, 1);
+				HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, 1);
+
+				HAL_GPIO_WritePin(PWM_M3_GPIO_Port, PWM_M3_Pin, 1);
+				HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, 1);
+				HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, 1);
+
+				HAL_GPIO_WritePin(PWM_M4_GPIO_Port, PWM_M4_Pin, 1);
+				HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, 1);
+				HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, 1);
+			}
+			else {
 				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+
 				HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, 0);
 				HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 0);
 				HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, 0);
+
+				HAL_GPIO_WritePin(PWM_M2_GPIO_Port, PWM_M2_Pin, 0);
+				HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, 0);
+				HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, 0);
+
+				HAL_GPIO_WritePin(PWM_M3_GPIO_Port, PWM_M3_Pin, 0);
+				HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, 0);
+				HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, 0);
+
+				HAL_GPIO_WritePin(PWM_M4_GPIO_Port, PWM_M4_Pin, 0);
+				HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, 0);
+				HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, 0);
 			}
 		}
 	  }
@@ -254,40 +272,62 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|LED2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, EN_M2_Pin|FWD_REV_M1_Pin|PWM_M3_Pin|PWM_M4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(PWM_M1_GPIO_Port, PWM_M1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|PWM_M2_Pin|LED2_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : FWD_REV_M1_Pin */
-  GPIO_InitStruct.Pin = FWD_REV_M1_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, PWM_M1_Pin|EN_M4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, EN_M3_Pin|FWD_REV_M4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : FWD_REV_M2_Pin */
+  GPIO_InitStruct.Pin = FWD_REV_M2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(FWD_REV_M1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(FWD_REV_M2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN_M1_Pin LED2_Pin */
-  GPIO_InitStruct.Pin = EN_M1_Pin|LED2_Pin;
+  /*Configure GPIO pins : EN_M2_Pin FWD_REV_M1_Pin PWM_M3_Pin PWM_M4_Pin */
+  GPIO_InitStruct.Pin = EN_M2_Pin|FWD_REV_M1_Pin|PWM_M3_Pin|PWM_M4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EN_M1_Pin PWM_M2_Pin LED2_Pin FWD_REV_M3_Pin */
+  GPIO_InitStruct.Pin = EN_M1_Pin|PWM_M2_Pin|LED2_Pin|FWD_REV_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PWM_M1_Pin */
-  GPIO_InitStruct.Pin = PWM_M1_Pin;
+  /*Configure GPIO pins : PWM_M1_Pin EN_M4_Pin */
+  GPIO_InitStruct.Pin = PWM_M1_Pin|EN_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(PWM_M1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EN_M3_Pin FWD_REV_M4_Pin */
+  GPIO_InitStruct.Pin = EN_M3_Pin|FWD_REV_M4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

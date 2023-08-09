@@ -1,8 +1,8 @@
 #ifndef ARMORIAL_SUASSUNA_I2C_H
 #define ARMORIAL_SUASSUNA_I2C_H
 
-#define SDA_PIN 21
-#define SCL_PIN 22
+#define SDA_PIN 4
+#define SCL_PIN 5
 #define I2C_FREQUENCY_HZ 400000
 #define STM_I2C_ADDRESS 0x1F
 
