@@ -59,19 +59,33 @@ void Controller::drive() {
   float vw =
       (getControlPacket().vw1 + getControlPacket().vw2) / (2 * 0.075f * 0.053f);
 
+  float vx = getVX(vw1_comand, vw2_comand);
+  float vw = getVW(vw1_comand, vw2_comand);
+  float mappedLinearVelocity;
+  float mappedAngularVelocity;
+  
+  if (vx > 0.0f) {
+    mappedLinearVelocity = map(vx, 0.0f, 1.0f, 50, 255);
+  } else {
+    mappedLinearVelocity = map(vx, 0.0f, -1.0f, -50, -255);
+  }
+  if (vw > 0.0f) {
+    mappedAngularVelocity = map(vw, 0.0f, 1.0f, 1, 37);
+  } else {
+    mappedAngularVelocity = map(vw, 0.0f, -1.0f, -1, -37);
+  }
+
   // PID set points
-  _wheel1->setSetPoint(vw1_comand);
-  _wheel2->setSetPoint(vw2_comand);
+  _wheel1->setSetPoint(mappedAngularVelocity);
 
   // PID actual values
-  float wheel1W = -_mpu->getGyroZ() * 0.075f / 0.053f;
-  float wheel2W = _mpu->getGyroZ() * 0.075f / 0.053f;
-  _wheel1->setActualValue(wheel1W);
-  _wheel2->setActualValue(wheel2W);
+  float actualAngularVelocity = _mpu->getGyroZ() * 180 / M_PI;
 
   // PID output
-  float wheel1Output = _wheel1->getOutput();
-  float wheel2Output = _wheel2->getOutput();
+  float angularPIDOutput = _wheel1->getOutput();
+
+  float Vel_R = mappedLinearVelocity + angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
+  float Vel_L = mappedLinearVelocity - angularPIDOutput;
 
   // Make conversion from rad/s to PWM
   // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
@@ -81,19 +95,19 @@ void Controller::drive() {
   //     interpolate_x, interpolate_y, interpolate_numPoints,
   //     _wheel2->getOutput())));
 
-  int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
-      interpolate_x, interpolate_y, interpolate_numPoints, abs(vw1_comand))));
-  int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
-      interpolate_x, interpolate_y, interpolate_numPoints, abs(vw2_comand))));
+  // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
+  //     interpolate_x, interpolate_y, interpolate_numPoints, abs(vw1_comand))));
+  // int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
+  //     interpolate_x, interpolate_y, interpolate_numPoints, abs(vw2_comand))));
 
   setLastControlPacket(getControlPacket());
 
   // Set PWM pin values
-  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, vw1_comand > 0 ? wheel_pwm_left : 0);
-  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, vw1_comand <= 0 ? wheel_pwm_left : 0);
+  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, vw1_comand > 0 ? fabs(Vel_L) : 0);
+  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, vw1_comand <= 0 ? fabs(Vel_L) : 0);
 
-  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, vw2_comand > 0 ? wheel_pwm_right : 0);
-  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, vw2_comand <= 0 ? wheel_pwm_right : 0);
+  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, vw2_comand > 0 ? fabs(Vel_R) : 0);
+  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, vw2_comand <= 0 ? fabs(Vel_R) : 0);
 }
 
 void Controller::setupPWMPins() {
@@ -111,4 +125,12 @@ void Controller::setupPWMPins() {
 void Controller::setupHBridge() {
   pinMode(PIN_H_BRIDGE, OUTPUT);
   digitalWrite(PIN_H_BRIDGE, HIGH);
+}
+
+float Controller::getVX(float leftWheelVelocity, float rightWheelVelocity) {
+  return (leftWheelVelocity + rightWheelVelocity) * 0.053f / 4;
+}
+
+float Controller::getVW(float leftWheelVelocity, float rightWheelVelocity) {
+  return (rightWheelVelocity - leftWheelVelocity) * 0.053f / (2 * 0.075f);
 }

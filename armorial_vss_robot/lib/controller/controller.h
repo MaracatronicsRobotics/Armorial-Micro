@@ -7,10 +7,10 @@
 #include <esp32-hal-ledc.h>
 #include <packets/packets.h>
 
-#define WHEEL_LEFT_FORWARD_PIN 12
-#define WHEEL_LEFT_BACKWARD_PIN 13
-#define WHEEL_RIGHT_FORWARD_PIN 2
-#define WHEEL_RIGHT_BACKWARD_PIN 26
+#define WHEEL_LEFT_FORWARD_PIN 26
+#define WHEEL_LEFT_BACKWARD_PIN 25
+#define WHEEL_RIGHT_FORWARD_PIN 32
+#define WHEEL_RIGHT_BACKWARD_PIN 33
 
 #define PIN_H_BRIDGE 27
 
@@ -31,6 +31,8 @@ public:
   void setControlPacket(const ControlPacket &controlPacket);
   void setLastControlPacket(const ControlPacket &controlPacket);
   ControlPacket getControlPacket();
+  float getVX(float leftWheelVelocity, float rightWheelVelocity);
+  float getVW(float leftWheelVelocity, float rightWheelVelocity);
 
   void drive();
 
