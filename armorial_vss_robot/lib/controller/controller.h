@@ -46,6 +46,7 @@ private:
   LastControlPacket _last_control_packet;
   PID *_wheel1;
   PID *_wheel2;
+  PID *_mpu_pid;
 };
 
 #endif /* ARMORIAL_SUASSUNA_CONTROLLER */

@@ -24,6 +24,7 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
 
   _wheel1 = new PID();
   _wheel2 = new PID();
+  _mpu_pid = new PID();
 
   _mpu = new MPU();
 }
@@ -62,27 +63,30 @@ void Controller::drive() {
   float vx = getVX(vw1_comand, vw2_comand);
   float vw = getVW(vw1_comand, vw2_comand);
   float mappedLinearVelocity;
-  float mappedAngularVelocity;
+  float angularVelocityDegrees;
   
   if (vx > 0.0f) {
     mappedLinearVelocity = map(vx, 0.0f, 1.0f, 50, 255);
   } else {
     mappedLinearVelocity = map(vx, 0.0f, -1.0f, -50, -255);
   }
-  if (vw > 0.0f) {
-    mappedAngularVelocity = map(vw, 0.0f, 1.0f, 1, 37);
-  } else {
-    mappedAngularVelocity = map(vw, 0.0f, -1.0f, -1, -37);
-  }
+  // if (vw > 0.0f) {
+  //   mappedAngularVelocity = map(vw, 0.0f, 1.0f, 1, 37);
+  // } else {
+  //   mappedAngularVelocity = map(vw, 0.0f, -1.0f, -1, -37);
+  // }
+  angularVelocityDegrees = vw * (180 / M_PI)
 
   // PID set points
-  _wheel1->setSetPoint(mappedAngularVelocity);
+  _mpu_pid->setSetPoint(mappedAngularVelocity);
 
   // PID actual values
   float actualAngularVelocity = _mpu->getGyroZ() * 180 / M_PI;
+  _mpu_pid->setActualValue(actualAngularVelocity)
 
   // PID output
-  float angularPIDOutput = _wheel1->getOutput();
+  float angularPIDOutput = _mpu_pid->getOutput();
+
 
   float Vel_R = mappedLinearVelocity + angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
   float Vel_L = mappedLinearVelocity - angularPIDOutput;
