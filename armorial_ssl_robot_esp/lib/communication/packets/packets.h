@@ -11,6 +11,7 @@ typedef struct {
   uint8_t infraRedStatus = false;
   float vw1 = 0, vw2 = 0, vw3 = 0, vw4 = 0;
   float vw1_encoder = 0, vw2_encoder = 0, vw3_encoder = 0, vw4_encoder = 0;
+  float gyro_x = 0, gyro_y = 0, gyro_z = 0;
   uint64_t timestamp = 0;
   uint16_t crc = 0;
 } FeedbackPacket;

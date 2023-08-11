@@ -14,6 +14,7 @@ typedef struct {
   uint8_t infraRedStatus;
   float vw1, vw2, vw3, vw4;
   float vw1_encoder, vw2_encoder, vw3_encoder, vw4_encoder;
+  float gyro_x, gyro_y, gyro_z;
   uint64_t timestamp;
   uint16_t crc;
 } FeedbackPacket;
