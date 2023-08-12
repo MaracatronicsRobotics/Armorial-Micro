@@ -18,6 +18,22 @@ void MPU::setup() {
   esp_timer_create_args_t encoder_timer_args = {
       .callback = &MPU::computeMPUCallback, .name = "mpu"};
   ESP_ERROR_CHECK(esp_timer_create(&encoder_timer_args, &_timer));
+
+  for (int cal_int = 0; cal_int < 1000 ; cal_int ++){                  
+    readFromMPURaw(); 
+    //Add the gyro x offset to the gyro_x_cal variable                                            
+    gyro_x_cal += _gyro_x;
+    //Add the gyro y offset to the gyro_y_cal variable                                              
+    gyro_y_cal += _gyro_y; 
+    //Add the gyro z offset to the gyro_z_cal variable                                             
+    gyro_z_cal += _gyro_z; 
+    //Delay 3us to have 250Hz for-loop                                             
+    delay(3);                                            
+}
+ // Divide all results by 1000 to get average offset
+  gyro_x_cal /= 1000;                                                 
+  gyro_y_cal /= 1000;                                                 
+  gyro_z_cal /= 1000;
 }
 
 void MPU::start() {
@@ -35,6 +51,14 @@ void MPU::stop() {
 }
 
 void MPU::readFromMPU() {
+  sensors_event_t a, g, temp;
+  _mpu.getEvent(&a, &g, &temp);
+  _gyro_x = g.gyro.x - gyro_x_cal;
+  _gyro_y = g.gyro.y - gyro_y_cal;
+  _gyro_z = g.gyro.z - gyro_z_cal;
+}
+
+void MPU::readFromMPURaw() {
   sensors_event_t a, g, temp;
   _mpu.getEvent(&a, &g, &temp);
   _gyro_x = g.gyro.x;
