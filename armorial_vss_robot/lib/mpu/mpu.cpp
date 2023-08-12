@@ -5,6 +5,9 @@ float MPU::_mpuAngularSpeed = 0.0f;
 float MPU::_gyro_x = 0.0f;
 float MPU::_gyro_y = 0.0f;
 float MPU::_gyro_z = 0.0f;
+float MPU::gyro_x_cal = 0.0f;
+float MPU::gyro_y_cal = 0.0f;
+float MPU::gyro_z_cal = 0.0f;
 esp_timer_handle_t MPU::_timer = {};
 bool MPU::_startedTimer = false;
 
