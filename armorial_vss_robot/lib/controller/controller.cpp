@@ -48,6 +48,10 @@ void Controller::drive() {
   float vw1_comand, vw2_comand;
   float Vel_R = 0.0f; //Velocidade final da roda direita
   float Vel_L = 0.0f; //Velocidade final da roda esquerda
+  float actualAngularVelocity = 0.0f; //vai receber a velocidade angular do MPU 
+  float mappedLinearVelocity = 0.0f; //vai receber a velocidade Linear reescalada para PWM
+  float angularVelocityDegrees = 0.0f; //vai receber a velocidade angular convertida para graus
+  float angularPIDOutput = 0.0f; // vai receber a saida do PID
 
   if (getControlPacket().vw1 == 0.f)
     _last_control_packet.vw1 < 0.f ? vw1_comand = -ZERO : vw1_comand = ZERO;
@@ -64,30 +68,23 @@ void Controller::drive() {
 
   float vx = getVX(vw1_comand, vw2_comand);
   float vw = getVW(vw1_comand, vw2_comand);
-  float mappedLinearVelocity;
-  float angularVelocityDegrees;
   
   if (vx > 0.0f) {
     mappedLinearVelocity = map(vx, 0.0f, 1.0f, 50, 255);
   } else {
     mappedLinearVelocity = map(vx, 0.0f, -1.0f, -50, -255);
   }
-  // if (vw > 0.0f) {
-  //   mappedAngularVelocity = map(vw, 0.0f, 1.0f, 1, 37);
-  // } else {
-  //   mappedAngularVelocity = map(vw, 0.0f, -1.0f, -1, -37);
-  // }
   angularVelocityDegrees = vw * (180 / M_PI);
 
   // PID set points
   _mpu_pid->setSetPoint(angularVelocityDegrees);
 
   // PID actual values
-  float actualAngularVelocity = _mpu->getGyroZ() * 180 / M_PI;
+  actualAngularVelocity = _mpu->getGyroZ() * 180 / M_PI;
   _mpu_pid->setActualValue(actualAngularVelocity);
 
   // PID output
-  float angularPIDOutput = _mpu_pid->getOutput();
+  angularPIDOutput = _mpu_pid->getOutput();
 
   if(mappedLinearVelocity >= 51.0f){
     Vel_R = mappedLinearVelocity - angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
