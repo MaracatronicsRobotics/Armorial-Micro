@@ -17,6 +17,9 @@ public:
   static float getGyroX();
   static float getGyroY();
   static float getGyroZ();
+  static float getGyroXDeg();
+  static float getGyroYDeg();
+  static float getGyroZDeg();
   static void start();
   static void stop();
 
@@ -29,12 +32,9 @@ private:
   static float _gyro_x;
   static float _gyro_y;
   static float _gyro_z;
-  static float gyro_x_cal;
-  static float gyro_y_cal;
-  static float gyro_z_cal;
   static esp_timer_handle_t _timer;
   static bool _startedTimer;
-  static void readFromMPURaw();
+
 };
 
 #endif // ARMORIAL_SUASSUNA_MPU_H

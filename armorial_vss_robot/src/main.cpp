@@ -22,9 +22,9 @@ void sendEncoderFeedback() {
   feedbackPacket.vw3_encoder = 0.0f;
   feedbackPacket.vw4 = 0.0f;
   feedbackPacket.vw4_encoder = 0.0f;
-  feedbackPacket.gyro_x = MPU::getGyroX();
-  feedbackPacket.gyro_y = MPU::getGyroY();
-  feedbackPacket.gyro_z = MPU::getGyroZ();
+  feedbackPacket.gyro_x = MPU::getGyroXDeg();
+  feedbackPacket.gyro_y = MPU::getGyroYDeg();
+  feedbackPacket.gyro_z = MPU::getGyroZDeg();
   feedbackPacket.timestamp = esp_timer_get_time();
   feedbackPacket.crc = 0;
   feedbackPacket.crc = compute_crc16cdma2000_byte(

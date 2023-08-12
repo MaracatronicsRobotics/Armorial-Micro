@@ -80,7 +80,7 @@ void Controller::drive() {
   _mpu_pid->setSetPoint(angularVelocityDegrees);
 
   // PID actual values
-  actualAngularVelocity = _mpu->getGyroZ() * 180 / M_PI;
+  actualAngularVelocity = _mpu->getGyroZDeg();
   _mpu_pid->setActualValue(actualAngularVelocity);
 
   // PID output
