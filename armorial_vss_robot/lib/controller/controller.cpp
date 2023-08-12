@@ -90,8 +90,8 @@ void Controller::drive() {
   float angularPIDOutput = _mpu_pid->getOutput();
 
   if(mappedLinearVelocity >= 51.0f){
-    float Vel_R = mappedLinearVelocity - angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
-    float Vel_L = mappedLinearVelocity + angularPIDOutput;
+    Vel_R = mappedLinearVelocity - angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
+    Vel_L = mappedLinearVelocity + angularPIDOutput;
 
   }
   
