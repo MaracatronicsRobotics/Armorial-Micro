@@ -229,7 +229,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV16;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
@@ -255,26 +255,34 @@ static void MX_ADC1_Init(void)
 
   /* USER CODE END ADC1_Init 1 */
 
-   //!!! HAL_ADC_Init is commented because some parameters are missing
-  //hadc.Instance = ADC1;
-  //hadc.Init.ClockPrescaler = ;
-  //hadc.Init.Resolution = ADC_RESOLUTION_12B;
-  //hadc.Init.ScanConvMode = DISABLE;
-  //hadc.Init.ContinuousConvMode = DISABLE;
-  //hadc.Init.DiscontinuousConvMode = DISABLE;
-  //hadc.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  //hadc.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  //hadc.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  //hadc.Init.NbrOfConversion = 1;
-  //hadc.Init.DMAContinuousRequests = DISABLE;
-  //hadc.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-    //HAL_ADC_Init(&hadc);
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-   //!!! HAL_ADC_ConfigChannel is commented because some parameters are missing
-  //sConfig.Channel = ADC_CHANNEL_5;
-  //sConfig.Rank = 1;
-  //sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-    //HAL_ADC_ConfigChannel(&hadc, &sConfig);
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
