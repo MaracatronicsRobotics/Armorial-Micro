@@ -42,19 +42,34 @@ void MPU::readFromMPU() {
   _gyro_z = g.gyro.z;
 }
 
-
-
 float MPU::getGyroX() { return _gyro_x; }
 
 float MPU::getGyroY() { return _gyro_y; }
 
 float MPU::getGyroZ() { return _gyro_z; }
 
-float MPU::getGyroXDeg() { return (_gyro_x *180/M_PI >= 2.0) ? _gyro_x *180/M_PI : 0.0f; }
+float MPU::getGyroXDeg() {
+  if (fabs((_gyro_x * 180 / M_PI)) >= 2.0) {
+    return (_gyro_x * 180 / M_PI);
+  } else {
+    return 0.0f;
+  }
+}
 
-float MPU::getGyroYDeg() { return  (_gyro_y *180/M_PI >= 2.0) ? _gyro_y *180/M_PI : 0.0f;}
+float MPU::getGyroYDeg() {
+  if (fabs((_gyro_y * 180 / M_PI)) >= 2.0) {
+    return (_gyro_y * 180 / M_PI);
+  } else {
+    return 0.0f;
+  }
+}
 
-float MPU::getGyroZDeg() { return  (_gyro_z *180/M_PI >= 2.0) ? _gyro_z *180/M_PI : 0.0f;}
-
+float MPU::getGyroZDeg() {
+  if (fabs((_gyro_z * 180 / M_PI)) >= 2.0) {
+    return (_gyro_z * 180 / M_PI);
+  } else {
+    return 0.0f;
+  }
+}
 
 void MPU::computeMPUCallback(void *arg) { readFromMPU(); }

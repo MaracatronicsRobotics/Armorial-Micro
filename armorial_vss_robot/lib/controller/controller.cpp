@@ -44,76 +44,50 @@ void Controller::setLastControlPacket(const ControlPacket &controlPacket) {
 }
 
 void Controller::drive() {
+  float velR = 0.0f;
+  float velL = 0.0f;
 
-  float vw1_comand, vw2_comand;
-  float Vel_R = 0.0f; //Velocidade final da roda direita
-  float Vel_L = 0.0f; //Velocidade final da roda esquerda
-  float actualAngularVelocity = 0.0f; //vai receber a velocidade angular do MPU 
-  float mappedLinearVelocity = 0.0f; //vai receber a velocidade Linear reescalada para PWM
-  float angularVelocityDegrees = 0.0f; //vai receber a velocidade angular convertida para graus
-  float angularPIDOutput = 0.0f; // vai receber a saida do PID
+  if (fabs(getControlPacket().vx) >= 0.01f) {
+    float vx = getControlPacket().vx;
+    float vw = getControlPacket().vw * (180.0f / M_PI);
 
-  if (getControlPacket().vw1 == 0.f)
-    _last_control_packet.vw1 < 0.f ? vw1_comand = -ZERO : vw1_comand = ZERO;
-  else
-    vw1_comand = getControlPacket().vw1;
+    _mpu_pid->setActualValue(_mpu->getGyroZDeg());
+    _mpu_pid->setSetPoint(vw);
+    float linear = 0.0f;
+    float angular = _mpu_pid->getOutput();
 
-  if (getControlPacket().vw2 == 0.f || getControlPacket().vw2 == -0.f)
-    _last_control_packet.vw2 < 0.f ? vw2_comand = -ZERO : vw2_comand = ZERO;
-  else
-    vw2_comand = getControlPacket().vw2;
+    if (vx >= 0.0f) {
+      linear = map(vx, 0.0f, 1.0f, 50, 255);
+    } else {
+      linear = map(vx, -1.0f, 0.0f, -255, -50);
+    }
 
-  // float vw =
-  //     (getControlPacket().vw1 + getControlPacket().vw2) / (2 * 0.075f * 0.053f);
+    velR = linear - angular;
+    velL = linear + angular;
 
-  float vx = getVX(vw1_comand, vw2_comand);
-  float vw = getVW(vw1_comand, vw2_comand);
-  
-  if (vx > 0.0f) {
-    mappedLinearVelocity = map(vx, 0.0f, 1.0f, 50, 255);
-  } else {
-    mappedLinearVelocity = map(vx, 0.0f, -1.0f, -50, -255);
+    if (velR < 15 && velR > -15)
+      velR = 0;
+    if (velR > 255)
+      velR = 255;
+    if (velR < -255)
+      velR = -255;
+
+    if (velL < 15 && velL > -15)
+      velL = 0;
+    if (velL > 255)
+      velL = 255;
+    if (velL < -255)
+      velL = -255;
   }
-  angularVelocityDegrees = vw * (180 / M_PI);
-
-  // PID set points
-  _mpu_pid->setSetPoint(angularVelocityDegrees);
-
-  // PID actual values
-  actualAngularVelocity = _mpu->getGyroZDeg();
-  _mpu_pid->setActualValue(actualAngularVelocity);
-
-  // PID output
-  angularPIDOutput = _mpu_pid->getOutput();
-
-  if(mappedLinearVelocity >= 51.0f){
-    Vel_R = mappedLinearVelocity - angularPIDOutput; //ao somar o angular com linear em cada motor conseguimos a ideia de direcao do robo
-    Vel_L = mappedLinearVelocity + angularPIDOutput;
-
-  }
-  
-
-  // Make conversion from rad/s to PWM
-  // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
-  //     interpolate_x, interpolate_y, interpolate_numPoints,
-  //     _wheel1->getOutput())));
-  // int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
-  //     interpolate_x, interpolate_y, interpolate_numPoints,
-  //     _wheel2->getOutput())));
-
-  // int wheel_pwm_left = int(round(Interpolation::ConstrainedSpline(
-  //     interpolate_x, interpolate_y, interpolate_numPoints, abs(vw1_comand))));
-  // int wheel_pwm_right = int(round(Interpolation::ConstrainedSpline(
-  //     interpolate_x, interpolate_y, interpolate_numPoints, abs(vw2_comand))));
 
   setLastControlPacket(getControlPacket());
 
   // Set PWM pin values
-  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, vw1_comand > 0 ? fabs(Vel_L) : 0);
-  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, vw1_comand <= 0 ? fabs(Vel_L) : 0);
+  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, velL > 0 ? abs(velL) : 0);
+  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, velL <= 0 ? abs(velL) : 0);
 
-  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, vw2_comand > 0 ? fabs(Vel_R) : 0);
-  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, vw2_comand <= 0 ? fabs(Vel_R) : 0);
+  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, velR > 0 ? abs(velR) : 0);
+  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, velR <= 0 ? abs(velR) : 0);
 }
 
 void Controller::setupPWMPins() {
@@ -126,11 +100,6 @@ void Controller::setupPWMPins() {
   ledcAttachPin(WHEEL_LEFT_BACKWARD_PIN, WHEEL_LEFT_BACKWARD_PIN_ID);
   ledcAttachPin(WHEEL_RIGHT_FORWARD_PIN, WHEEL_RIGHT_FORWARD_PIN_ID);
   ledcAttachPin(WHEEL_RIGHT_BACKWARD_PIN, WHEEL_RIGHT_BACKWARD_PIN_ID);
-}
-
-void Controller::setupHBridge() {
-  pinMode(PIN_H_BRIDGE, OUTPUT);
-  digitalWrite(PIN_H_BRIDGE, HIGH);
 }
 
 float Controller::getVX(float leftWheelVelocity, float rightWheelVelocity) {

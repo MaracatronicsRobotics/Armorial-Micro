@@ -23,6 +23,7 @@ typedef struct {
 typedef struct {
   char control;
   float vw1, vw2, vw3, vw4;
+  float vx, vy, vw;
   char solenoidPower;
   uint16_t crc;
 } ControlPacket;

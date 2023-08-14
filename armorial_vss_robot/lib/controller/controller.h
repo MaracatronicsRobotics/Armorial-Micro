@@ -2,17 +2,15 @@
 #define ARMORIAL_SUASSUNA_CONTROLLER
 
 #include "pid.h"
-#include <mpu.h>
 #include <encoder.h>
 #include <esp32-hal-ledc.h>
+#include <mpu.h>
 #include <packets/packets.h>
 
 #define WHEEL_LEFT_FORWARD_PIN 26
 #define WHEEL_LEFT_BACKWARD_PIN 25
 #define WHEEL_RIGHT_FORWARD_PIN 32
 #define WHEEL_RIGHT_BACKWARD_PIN 33
-
-#define PIN_H_BRIDGE 27
 
 #define WHEEL_LEFT_FORWARD_PIN_ID 1
 #define WHEEL_LEFT_BACKWARD_PIN_ID 2
@@ -37,7 +35,6 @@ public:
   void drive();
 
   static void setupPWMPins();
-  static void setupHBridge();
 
 private:
   Encoder *_encoder;

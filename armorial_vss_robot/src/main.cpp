@@ -38,7 +38,6 @@ void setup() {
   Serial.begin(115200);
 
   // Setup H-Bridge and PWM pins
-  Controller::setupHBridge();
   Controller::setupPWMPins();
 
   // Setup MPU
