@@ -77,7 +77,10 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim9;
 
 /* USER CODE BEGIN PV */
-
+uint32_t timestamp_charge_kick;
+uint32_t timestamp_kick;
+int KICK_AVAILABLE = 0;
+int KICK_ON = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,6 +105,39 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+void start_kick_charge() {
+	if (KICK_AVAILABLE = 1) {
+		KICK_AVAILABLE = 0;
+		CHUTE_PWM = 7;
+		timestamp_charge_kick = HAL_GetTick();
+	}
+}
+
+int try_stop_kick_charge() {
+	uint32_t actual_timestamp HAL_GetTick();
+	if (actual_timestamp - timestamp_charge_kick >= 10 && !KICK_AVAILABLE) {
+		KICK_AVAILABLE = 1;
+		CHUTE_PWM = 0;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+
+	// stop kick command
+	if (actual_timestamp - timestamp_kick >= 10 && KICK_ON) {
+		KICK_ON = 0;
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+		start_kick_charge();
+	}
+}
+
+void kick() {
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+	KICK_ON = 1;
+	timestamp_kick = HAL_GetTick();
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -111,6 +147,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	start_kick_charge();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -167,6 +204,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+	  if (KICK_ON) kick();
+	  else try_stop_kick_charge();
+
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
@@ -204,6 +244,9 @@ int main(void)
 	  			MOTOR_3_PWM = map(fabs(controlPacket.vw4), 0, 40, 0, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, controlPacket.vw4 >= 0);
 	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(controlPacket.vw4) > 2);
+
+	  			if ( (uint8_t) controlePacket.solenoidPower >= 227) KICK_ON = 1;
+	  			else KICK_ON = 0;
 	  		}
 	  	  }
 
