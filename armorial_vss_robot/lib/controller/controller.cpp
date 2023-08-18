@@ -24,6 +24,8 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   _wheel2 = new PID();
   _mpu_pid = new PID();
 
+  _mpu_pid->setConstants(10.0f, 0.0f, 0.0f);
+
   _mpu = new MPU();
 }
 
@@ -47,12 +49,12 @@ void Controller::drive() {
   if (fabs(getControlPacket().vx) >= 0.01f &&
       fabs(getControlPacket().vw) >= 0.20) {
     float vx = getControlPacket().vx;
-    float vw = getControlPacket().vw * (180.0f / M_PI);
+    float vw = getControlPacket().vw; // * (180.0f / M_PI);
 
-    _mpu_pid->setActualValue(_mpu->getGyroZ());
+    _mpu_pid->setActualValue(_mpu->getGyroZ() * (M_PI / 180.0f));
     _mpu_pid->setSetPoint(vw);
     float linear = 0.0f;
-    float angular = _mpu_pid->getOutput();
+    float angular = vw + _mpu_pid->getOutput();
 
     if (vx >= 0.0f) {
       linear = Utils::fmap(vx, 0.0f, 1.0f, 50.0f, 255.0f);
