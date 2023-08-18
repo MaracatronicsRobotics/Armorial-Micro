@@ -1,16 +1,17 @@
-#ifndef ARMORIAL_SUASSUNA_CONTROLLER
-#define ARMORIAL_SUASSUNA_CONTROLLER
+#ifndef ARMORIAL_SUASSUNA_CONTROLLER_H
+#define ARMORIAL_SUASSUNA_CONTROLLER_H
 
 #include "pid.h"
 #include <encoder.h>
 #include <esp32-hal-ledc.h>
 #include <mpu.h>
 #include <packets/packets.h>
+#include <utils.h>
 
 #define WHEEL_LEFT_FORWARD_PIN 26
 #define WHEEL_LEFT_BACKWARD_PIN 25
-#define WHEEL_RIGHT_FORWARD_PIN 32
-#define WHEEL_RIGHT_BACKWARD_PIN 33
+#define WHEEL_RIGHT_FORWARD_PIN 33
+#define WHEEL_RIGHT_BACKWARD_PIN 32
 
 #define WHEEL_LEFT_FORWARD_PIN_ID 1
 #define WHEEL_LEFT_BACKWARD_PIN_ID 2
@@ -46,4 +47,4 @@ private:
   PID *_mpu_pid;
 };
 
-#endif /* ARMORIAL_SUASSUNA_CONTROLLER */
+#endif // ARMORIAL_SUASSUNA_CONTROLLER_H

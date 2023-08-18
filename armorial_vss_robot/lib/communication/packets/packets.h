@@ -26,7 +26,7 @@ typedef struct {
 } ControlPacket;
 
 typedef struct {
-  float vw1 = 0, vw2 = 0, vw3 = 0, vw4 = 0;
+  float vx = 0, vy = 0, vw = 0;
   char solenoidPower = 0;
 } LastControlPacket;
 

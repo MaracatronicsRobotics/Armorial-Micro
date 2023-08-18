@@ -1,6 +1,7 @@
 #include "mpu.h"
 
-Adafruit_MPU6050 MPU::_mpu = Adafruit_MPU6050();
+MPU6050 MPU::_mpu = MPU6050(Wire);
+SimpleKalmanFilter MPU::_kalman = SimpleKalmanFilter(0.1, 0.1, 0.01);
 float MPU::_mpuAngularSpeed = 0.0f;
 float MPU::_gyro_x = 0.0f;
 float MPU::_gyro_y = 0.0f;
@@ -9,10 +10,9 @@ esp_timer_handle_t MPU::_timer = {};
 bool MPU::_startedTimer = false;
 
 void MPU::setup() {
+  Wire.begin();
   _mpu.begin();
-  _mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  _mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  _mpu.setFilterBandwidth(MPU6050_BAND_94_HZ);
+  _mpu.calcGyroOffsets();
 
   // Setup timer
   esp_timer_create_args_t encoder_timer_args = {
@@ -35,11 +35,10 @@ void MPU::stop() {
 }
 
 void MPU::readFromMPU() {
-  sensors_event_t a, g, temp;
-  _mpu.getEvent(&a, &g, &temp);
-  _gyro_x = g.gyro.x;
-  _gyro_y = g.gyro.y;
-  _gyro_z = g.gyro.z;
+  _mpu.update();
+  _gyro_x = (_mpu.getGyroX() * (180 / M_PI));
+  _gyro_y = (_mpu.getGyroY() * (180 / M_PI));
+  _gyro_z = _kalman.updateEstimate((_mpu.getGyroZ() * (180 / M_PI)));
 }
 
 float MPU::getGyroX() { return _gyro_x; }
@@ -47,29 +46,5 @@ float MPU::getGyroX() { return _gyro_x; }
 float MPU::getGyroY() { return _gyro_y; }
 
 float MPU::getGyroZ() { return _gyro_z; }
-
-float MPU::getGyroXDeg() {
-  if (fabs((_gyro_x * 180 / M_PI)) >= 2.0) {
-    return (_gyro_x * 180 / M_PI);
-  } else {
-    return 0.0f;
-  }
-}
-
-float MPU::getGyroYDeg() {
-  if (fabs((_gyro_y * 180 / M_PI)) >= 2.0) {
-    return (_gyro_y * 180 / M_PI);
-  } else {
-    return 0.0f;
-  }
-}
-
-float MPU::getGyroZDeg() {
-  if (fabs((_gyro_z * 180 / M_PI)) >= 2.0) {
-    return (_gyro_z * 180 / M_PI);
-  } else {
-    return 0.0f;
-  }
-}
 
 void MPU::computeMPUCallback(void *arg) { readFromMPU(); }

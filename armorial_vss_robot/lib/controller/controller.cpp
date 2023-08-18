@@ -16,10 +16,8 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   controlPacket.control = ROBOT_ID;
   controlPacket.crc = 0;
   controlPacket.solenoidPower = 0;
-  controlPacket.vw1 = 0;
-  controlPacket.vw2 = 0;
-  controlPacket.vw3 = 0;
-  controlPacket.vw4 = 0;
+  controlPacket.vx = 0;
+  controlPacket.vw = 0;
   setControlPacket(controlPacket);
 
   _wheel1 = new PID();
@@ -37,29 +35,29 @@ ControlPacket Controller::getControlPacket() { return _control_packet; }
 
 void Controller::setLastControlPacket(const ControlPacket &controlPacket) {
   _last_control_packet.solenoidPower = controlPacket.solenoidPower;
-  _last_control_packet.vw1 = controlPacket.vw1;
-  _last_control_packet.vw2 = controlPacket.vw2;
-  _last_control_packet.vw3 = controlPacket.vw3;
-  _last_control_packet.vw4 = controlPacket.vw4;
+  _last_control_packet.vx = controlPacket.vx;
+  _last_control_packet.vy = controlPacket.vy;
+  _last_control_packet.vw = controlPacket.vw;
 }
 
 void Controller::drive() {
   float velR = 0.0f;
   float velL = 0.0f;
 
-  if (fabs(getControlPacket().vx) >= 0.01f) {
+  if (fabs(getControlPacket().vx) >= 0.01f &&
+      fabs(getControlPacket().vw) >= 0.20) {
     float vx = getControlPacket().vx;
     float vw = getControlPacket().vw * (180.0f / M_PI);
 
-    _mpu_pid->setActualValue(_mpu->getGyroZDeg());
+    _mpu_pid->setActualValue(_mpu->getGyroZ());
     _mpu_pid->setSetPoint(vw);
     float linear = 0.0f;
     float angular = _mpu_pid->getOutput();
 
     if (vx >= 0.0f) {
-      linear = map(vx, 0.0f, 1.0f, 50, 255);
+      linear = Utils::fmap(vx, 0.0f, 1.0f, 50.0f, 255.0f);
     } else {
-      linear = map(vx, -1.0f, 0.0f, -255, -50);
+      linear = Utils::fmap(vx, -1.0f, 0.0f, -255.0f, -50.0f);
     }
 
     velR = linear - angular;
