@@ -77,8 +77,6 @@ void Error_Handler(void);
 #define LEITURA_CHUTE_GPIO_Port GPIOC
 #define PWM_CARREGAMENTO_CHUTE_Pin GPIO_PIN_1
 #define PWM_CARREGAMENTO_CHUTE_GPIO_Port GPIOA
-#define PWM_BUZZER_Pin GPIO_PIN_3
-#define PWM_BUZZER_GPIO_Port GPIOA
 #define EN_M1_Pin GPIO_PIN_4
 #define EN_M1_GPIO_Port GPIOA
 #define LEITURA_INFRA_Pin GPIO_PIN_5
