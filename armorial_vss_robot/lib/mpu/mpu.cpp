@@ -36,9 +36,9 @@ void MPU::stop() {
 
 void MPU::readFromMPU() {
   _mpu.update();
-  _gyro_x = (_mpu.getGyroX() * (180 / M_PI));
-  _gyro_y = (_mpu.getGyroY() * (180 / M_PI));
-  _gyro_z = _kalman.updateEstimate((_mpu.getGyroZ() * (180 / M_PI)));
+  _gyro_x = (_mpu.getGyroX());
+  _gyro_y = (_mpu.getGyroY());
+  _gyro_z = _kalman.updateEstimate((_mpu.getGyroZ()));
 }
 
 float MPU::getGyroX() { return _gyro_x; }

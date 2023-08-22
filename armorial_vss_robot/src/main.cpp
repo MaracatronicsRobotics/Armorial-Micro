@@ -14,6 +14,9 @@ void sendEncoderFeedback() {
   feedbackPacket.control = controlPacket.control;
   feedbackPacket.batteryPercentage = 0.0f;
   feedbackPacket.infraRedStatus = false;
+  feedbackPacket.vx = controlPacket.vx;
+  feedbackPacket.vy = controlPacket.vy;
+  feedbackPacket.vw = controlPacket.vw;
   feedbackPacket.vw1_encoder = encoder->getAngularSpeedWL();
   feedbackPacket.vw2_encoder = encoder->getAngularSpeedWR();
   feedbackPacket.vw3_encoder = 0.0f;
