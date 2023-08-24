@@ -7,11 +7,11 @@
 #include <math.h>
 #include <packets/packets.h>
 
-#define PIN_ENCODER_1_A 15
-#define PIN_ENCODER_1_B 16
+#define PIN_ENCODER_1_A 5
+#define PIN_ENCODER_1_B 18
 
-#define PIN_ENCODER_2_A 17
-#define PIN_ENCODER_2_B 18
+#define PIN_ENCODER_2_A 19
+#define PIN_ENCODER_2_B 13
 
 #define PULSES_PER_REVOLUTION 7
 #define GEAR_RATIO 100
