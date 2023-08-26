@@ -113,6 +113,16 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+void calibrateEsc() {
+	PWM_DRIBLE = 20000;
+	HAL_Delay(2000);
+	PWM_DRIBLE = 10000;
+	HAL_Delay(1000);
+	PWM_DRIBLE = 5000;
+	HAL_Delay(1000);
+	PWM_DRIBLE = 0;
+}
+
 
 /* USER CODE END 0 */
 
@@ -175,6 +185,38 @@ int main(void)
   // Starting ADC channel using DMA
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
 
+  /*
+   */
+
+  /*
+  PWM_DRIBLE = 20000;
+  HAL_Delay(2500);
+  int i = 0;
+  for (i = 1; i <= 100; i++) {
+	  PWM_DRIBLE = 20000 - (200 * i);
+	  HAL_Delay(25);
+  }
+
+  PWM_DRIBLE = 0;
+  HAL_Delay(1000);
+  */
+
+  /*
+  PWM_DRIBLE = 20000;
+  HAL_Delay(2500);
+  PWM_DRIBLE = 15000;
+  HAL_Delay(1000);
+  */
+
+  //PWM_DRIBLE = 0;
+
+  //int teste = 0;
+  calibrateEsc();
+
+  //PWM_DRIBLE = 0;
+  int sum = 0;
+  int reversed = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -185,8 +227,23 @@ int main(void)
 	  MOTOR_3_PWM = 50;
 	  MOTOR_4_PWM = 50;
 	  PWM_CARREG_CHUTE = 1000;
-	  PWM_DRIBLE = 10000;
-	  PWM_BUZZER = 50;
+	  PWM_BUZZER = 100;
+	  /*
+	   */
+	  PWM_DRIBLE = 5000 + sum;
+	  if(sum == 1000) reversed = 1;
+	  else if(sum == 0) reversed = 0;
+	  sum = sum + (reversed ? -100 : 100);
+	  HAL_Delay(500);
+	  //teste = (teste + 1000) % 10000;
+	  //HAL_Delay(1000);
+	  /*
+	  PWM_DRIBLE = PWM_DRIBLE + 500;
+	  if (PWM_DRIBLE > 10000) {
+		  PWM_DRIBLE = 0;
+	  }
+	  */
+	  //PWM_DRIBLE = 9500;
 
 	  if(getMasterInput) {
 		  getMasterInput = 0;
@@ -436,7 +493,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 128;
+  htim2.Init.Prescaler = 64;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 1999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -495,7 +552,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 128;
+  htim3.Init.Prescaler = 64;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -566,7 +623,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 128;
+  htim4.Init.Prescaler = 64;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 19999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -682,7 +739,7 @@ static void MX_TIM9_Init(void)
 
   /* USER CODE END TIM9_Init 1 */
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 128;
+  htim9.Init.Prescaler = 64;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim9.Init.Period = 199;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
