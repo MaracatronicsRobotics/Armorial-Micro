@@ -8,9 +8,9 @@
 #include <packets/packets.h>
 
 #define PIN_ENCODER_1_A 18
-#define PIN_ENCODER_1_B 5
+#define PIN_ENCODER_1_B 13
 
-#define PIN_ENCODER_2_A 13
+#define PIN_ENCODER_2_A 5
 #define PIN_ENCODER_2_B 19
 
 #define PULSES_PER_REVOLUTION 7
