@@ -19,6 +19,8 @@
 
 #define ENCODER_CALLS_BEFORE_FEEDBACK 1
 
+#include <SimpleKalmanFilter.h>
+
 class Encoder {
 public:
   Encoder() = default;
@@ -39,6 +41,8 @@ private:
   static volatile int encoder_count_wl;
   static volatile int encoder_count_wr;
   static std::function<void()> callback;
+  static SimpleKalmanFilter _kalman_wl;
+  static SimpleKalmanFilter _kalman_wr;
 };
 
 #endif // ARMORIAL_SUASSUNA_ENCODER_H

@@ -7,17 +7,19 @@ float Encoder::angular_speed_wr = 0.0f;
 volatile int Encoder::encoder_count_wl = 0;
 volatile int Encoder::encoder_count_wr = 0;
 std::function<void()> Encoder::callback = nullptr;
+SimpleKalmanFilter Encoder::_kalman_wr = SimpleKalmanFilter(0.1, 0.1, 0.01);
+SimpleKalmanFilter Encoder::_kalman_wl = SimpleKalmanFilter(0.1, 0.1, 0.01);
 
 float Encoder::getAngularSpeedWL() { return angular_speed_wl; }
 float Encoder::getAngularSpeedWR() { return -angular_speed_wr; }
 
 void Encoder::computeEncoderCallback(void *arg) {
-  angular_speed_wl =
+  angular_speed_wl = _kalman_wl.updateEstimate(
       (2 * M_PI * encoder_count_wl) /
-      (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f));
-  angular_speed_wr =
+      (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
+  angular_speed_wr = _kalman_wr.updateEstimate(
       (2 * M_PI * encoder_count_wr) /
-      (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f));
+      (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
   encoder_count_wl = 0;
   encoder_count_wr = 0;
 
