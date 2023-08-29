@@ -55,7 +55,13 @@ void Controller::drive() {
     _mpu_pid->setActualValue(_mpu->getGyroZ());
     _mpu_pid->setSetPoint(vw);
     float linear = 0.0f;
-    float angular = vw + _mpu_pid->getOutput();
+    float angular;
+    
+    if(fabs(vw)<=2){
+      angular = 0;
+    }else{
+      angular = vw + _mpu_pid->getOutput();
+    }
 
     if (vx >= 0.0f) {
       linear = Utils::fmap(vx, 0.0f, 1.0f, 30.0f, 180.0f);
