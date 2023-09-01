@@ -69,6 +69,7 @@ uint32_t adc1[6];
 #define LEITURA_INFRA 4
 #define LEITURA_CHUTE 5
 
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -82,6 +83,12 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim9;
+
+// --- Direção de giro das rodas ---
+uint8_t dir_M1;
+uint8_t dir_M2;
+uint8_t dir_M3;
+uint8_t dir_M4;
 
 /* USER CODE BEGIN PV */
 uint32_t timestamp_charge_kick;
@@ -108,11 +115,14 @@ static void MX_TIM5_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+//--- Map ---
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+
+//--- Calibração ESC ---
 void calibrateEsc() {
 	PWM_DRIBLE = 20000;
 	HAL_Delay(2000);
@@ -123,6 +133,41 @@ void calibrateEsc() {
 	PWM_DRIBLE = 0;
 }
 
+//--- Leitura Hall ---
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(GPIO_Pin);
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_GPIO_EXTI_Callback could be implemented in the user file
+   */
+
+  if(GPIO_Pin == H1_M1_Pin){
+	  if(HAL_GPIO_ReadPin(H2_M1_GPIO_Port, H2_M1_Pin) != 0)
+		   dir_M1 = 0; // direção 1
+	  else dir_M1 = 1; // direção 2
+  }
+
+  if(GPIO_Pin == H1_M2_Pin){
+	  if(HAL_GPIO_ReadPin(H2_M2_GPIO_Port, H2_M2_Pin) != 0)
+		   dir_M2 = 0; // direção 1
+	  else dir_M2 = 1; // direção 2
+  }
+
+  if(GPIO_Pin == H1_M3_Pin){
+	  if(HAL_GPIO_ReadPin(H2_M3_GPIO_Port, H2_M3_Pin) != 0)
+		   dir_M3 = 0; // direção 1
+	  else dir_M3 = 1; // direção 2
+  }
+
+  if(GPIO_Pin == H1_M4_Pin){
+	  if(HAL_GPIO_ReadPin(H2_M4_GPIO_Port, H2_M4_Pin) != 0)
+		   dir_M4 = 0; // direção 1
+	  else dir_M4 = 1; // direção 2
+  }
+
+}
 
 /* USER CODE END 0 */
 
@@ -809,11 +854,15 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : H2_M2_Pin H1_M2_Pin H2_M1_Pin H1_M1_Pin
-                           H2_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M2_Pin|H1_M2_Pin|H2_M1_Pin|H1_M1_Pin
-                          |H2_M4_Pin;
+  /*Configure GPIO pins : H2_M2_Pin H2_M1_Pin H2_M4_Pin */
+  GPIO_InitStruct.Pin = H2_M2_Pin|H2_M1_Pin|H2_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : H1_M2_Pin H1_M1_Pin */
+  GPIO_InitStruct.Pin = H1_M2_Pin|H1_M1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
@@ -838,15 +887,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : H2_M3_Pin H1_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M3_Pin|H1_M4_Pin;
+  /*Configure GPIO pin : H2_M3_Pin */
+  GPIO_InitStruct.Pin = H2_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(H2_M3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : H1_M3_Pin */
   GPIO_InitStruct.Pin = H1_M3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(H1_M3_GPIO_Port, &GPIO_InitStruct);
 
@@ -863,6 +912,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(EN_M4_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : H1_M4_Pin */
+  GPIO_InitStruct.Pin = H1_M4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(H1_M4_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
