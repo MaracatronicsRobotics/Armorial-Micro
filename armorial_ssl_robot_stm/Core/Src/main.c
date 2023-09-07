@@ -95,6 +95,8 @@ uint32_t timestamp_charge_kick;
 uint32_t timestamp_kick;
 int KICK_AVAILABLE = 0;
 int KICK_ON = 0;
+long long timer_kick = 0;
+int aux_teste_chute = 0; // 0 = 2sec, 1 = 4 sec
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -169,6 +171,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 }
 
+void try_kick() {
+	long long actual_time = HAL_GetTick();
+	if(actual_time - timer_kick >= 2000 * aux_teste_chute + 2000) {
+		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 1);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+		HAL_Delay(20);
+		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 0);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+		timer_kick = HAL_GetTick();
+
+		if (aux_teste_chute) aux_teste_chute = 0;
+		else aux_teste_chute = 1;
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -178,6 +194,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -267,19 +284,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+	  try_kick();
 	  MOTOR_1_PWM = 50;
 	  MOTOR_2_PWM = 50;
 	  MOTOR_3_PWM = 50;
 	  MOTOR_4_PWM = 50;
-	  PWM_CARREG_CHUTE = 1000;
+	  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
+	  HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, 1);
+	  HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, 1);
+	  HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, 1);
+	  PWM_CARREG_CHUTE = 140;
 	  PWM_BUZZER = 100;
 	  /*
 	   */
-	  PWM_DRIBLE = 5000 + sum;
-	  if(sum == 1000) reversed = 1;
-	  else if(sum == 0) reversed = 0;
-	  sum = sum + (reversed ? -100 : 100);
-	  HAL_Delay(500);
+	  PWM_DRIBLE = 5000;
 	  //teste = (teste + 1000) % 10000;
 	  //HAL_Delay(1000);
 	  /*
