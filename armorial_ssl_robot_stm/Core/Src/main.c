@@ -87,19 +87,7 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim9;
 
-// --- Direção de giro das rodas ---
-uint8_t dir_M1;
-uint8_t dir_M2;
-uint8_t dir_M3;
-uint8_t dir_M4;
-
 /* USER CODE BEGIN PV */
-uint32_t timestamp_charge_kick;
-uint32_t timestamp_kick;
-int KICK_AVAILABLE = 0;
-int KICK_ON = 0;
-long long timer_kick = 0;
-int aux_teste_chute = 0; // 0 = 2sec, 1 = 4 sec
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,60 +114,46 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+typedef enum {charged = 0, charging=1, kicking=2} kick_state;
+kick_state kickState = kicking;
+long long timer_kick = 0;
 
-//--- Calibração ESC ---
+void turn_kick_charge_on() {PWM_CARREG_CHUTE = 140;}
+void turn_kick_charge_off() {PWM_CARREG_CHUTE = 0;}
+void turn_kick_on() {
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 1);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);}
+void turn_kick_off() {
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 0);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);}
 
-
-//--- Leitura Hall ---
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(GPIO_Pin);
-  /* NOTE: This function Should not be modified, when the callback is needed,
-           the HAL_GPIO_EXTI_Callback could be implemented in the user file
-   */
-
-  if(GPIO_Pin == H1_M1_Pin){
-	  if(HAL_GPIO_ReadPin(H2_M1_GPIO_Port, H2_M1_Pin) != 0)
-		   dir_M1 = 0; // direção 1
-	  else dir_M1 = 1; // direção 2
-  }
-
-  if(GPIO_Pin == H1_M2_Pin){
-	  if(HAL_GPIO_ReadPin(H2_M2_GPIO_Port, H2_M2_Pin) != 0)
-		   dir_M2 = 0; // direção 1
-	  else dir_M2 = 1; // direção 2
-  }
-
-  if(GPIO_Pin == H1_M3_Pin){
-	  if(HAL_GPIO_ReadPin(H2_M3_GPIO_Port, H2_M3_Pin) != 0)
-		   dir_M3 = 0; // direção 1
-	  else dir_M3 = 1; // direção 2
-  }
-
-  if(GPIO_Pin == H1_M4_Pin){
-	  if(HAL_GPIO_ReadPin(H2_M4_GPIO_Port, H2_M4_Pin) != 0)
-		   dir_M4 = 0; // direção 1
-	  else dir_M4 = 1; // direção 2
-  }
-
-}
-
-void try_kick() {
-	long long actual_time = HAL_GetTick();
-	if(actual_time - timer_kick >= 2000 * aux_teste_chute + 2000) {
-		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 1);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
-		HAL_Delay(20);
-		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_5, 0);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
-		timer_kick = HAL_GetTick();
-
-		if (aux_teste_chute) aux_teste_chute = 0;
-		else aux_teste_chute = 1;
+void verify_kick_charge() {
+	if (kickState == charging) {
+		if (HAL_GetTick() - timer_kick >= 2000) {
+			kickState = charged;
+			turn_kick_charge_off();
+		}
 	}
 }
+void verify_kick_activation() {
+	if (kickState == kicking) {
+		if (HAL_GetTick() - timer_kick >= 20) {
+			turn_kick_off();
+			turn_kick_charge_on();
+			kickState = charging;
+			timer_kick = HAL_GetTick();
+		}
+	}
+}
+
+void kick() {
+	if (kickState == charged) {
+		turn_kick_on();
+		kickState = kicking;
+		timer_kick = HAL_GetTick();
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -235,9 +209,6 @@ int main(void)
   // Starting timer 5 channel 4 (buzzer)
   HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_4);
 
-  // Starting ADC channel using DMA
-  HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
-
   // Calibrating ESC routine;
   calibrateESC();
 
@@ -246,19 +217,28 @@ int main(void)
 	  Error_Handler();
   }
 
+  // Starting ADC channel using DMA
+  HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-	  /// TODO: testing, remove later!
-	  //  try_kick();
+	  // Kick verification
+	  verify_kick_charge();
+	  verify_kick_activation();
 
+	  // Check I2C communication
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
+			  	robotFeedback.vw1_encoder = (int) (adc1[LEITURA_CHUTE]);
+				robotFeedback.vw2_encoder = (int) (adc1[LEITURA_BATERIA]);
+				robotFeedback.vw3_encoder = (int) (adc1[LEITURA_8V]);
+				robotFeedback.vw4_encoder = (int) (adc1[LEITURA_5V]);
 			  	robotFeedback.timestamp = HAL_GetTick() * 1000; // microsecond
 			  	robotFeedback.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*)&robotFeedback, sizeof(FeedbackPacket));
 			  	memcpy(txBuffer, &robotFeedback, sizeof(FeedbackPacket));
@@ -282,6 +262,10 @@ int main(void)
 	  			}
 	  			else {
 	  				deactivateESC();
+	  			}
+
+	  			if(controlPacket.solenoidPower) {
+	  				kick();
 	  			}
 
 	  			/// TODO: process this packet with a method call (?)
@@ -318,9 +302,6 @@ int main(void)
 	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 40, 0, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
 	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
-	  		}
-	  		else{
-	  			//deactivateESC();
 	  		}
 	  	  }
 
@@ -411,7 +392,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 6;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
