@@ -70,6 +70,8 @@ uint32_t adc1[6];
 #define LEITURA_INFRA 4
 #define LEITURA_CHUTE 5
 
+#define SSL_WHEELS_DISTANCE_TO_CENTER 0.07245f
+#define SSL_WHEEL_RADIUS 0.03f
 
 /* USER CODE END PM */
 
@@ -217,10 +219,6 @@ int main(void)
   MX_TIM9_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-  if(HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK) {
-	  /* Transfer error in reception process */
-	  Error_Handler();
-  }
 
   // Starting timer 2 for channels 2 (kick charging)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
@@ -243,23 +241,18 @@ int main(void)
   // Calibrating ESC routine;
   calibrateESC();
 
+  if(HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK) {
+	  /* Transfer error in reception process */
+	  Error_Handler();
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
 	  /// TODO: testing, remove later!
-	  try_kick();
-	  MOTOR_1_PWM = 0;
-	  MOTOR_2_PWM = 0;
-	  MOTOR_3_PWM = 0;
-	  MOTOR_4_PWM = 0;
-	  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, (MOTOR_1_PWM > 10));
-	  HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, (MOTOR_2_PWM > 10));
-	  HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, (MOTOR_3_PWM > 10));
-	  HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, (MOTOR_4_PWM > 10));
-	  PWM_CARREG_CHUTE = 140;
-	  PWM_BUZZER = 100;
+	  //  try_kick();
 
 	  if(getMasterInput) {
 		  getMasterInput = 0;
@@ -282,22 +275,52 @@ int main(void)
 	  		ControlPacket controlPacket;
 	  		memcpy(&controlPacket, rxBuffer, sizeof(ControlPacket));
 	  		if(validatePacketCRC(controlPacket)) {
+
+	  			// Enable dribbling based on control
+	  			if(controlPacket.control & 0b01000000) {
+	  				activateESC();
+	  			}
+	  			else {
+	  				deactivateESC();
+	  			}
+
 	  			/// TODO: process this packet with a method call (?)
-	  			MOTOR_1_PWM = map(fabs(controlPacket.vw1), 0, 40, 0, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, controlPacket.vw1 >= 0);
-	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(controlPacket.vw1) > 2);
+	  			float wheelFrontLeft =
+					(1.0 / SSL_WHEEL_RADIUS) *
+					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(56.8 * (M_PI / 180.0))) + (controlPacket.vy * cos(56.8 * (M_PI / 180.0)))));
+	  			float wheelBottomLeft =
+					(1.0 / SSL_WHEEL_RADIUS) *
+					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(135.4 * (M_PI / 180.0))) + (controlPacket.vy * cos(135.4 * (M_PI / 180.0)))));
+				float wheelBottomRight =
+					(1.0 / SSL_WHEEL_RADIUS) *
+					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(225 * (M_PI / 180.0))) + (controlPacket.vy * cos(225 * (M_PI / 180.0)))));
+				float wheelFrontRight =
+					(1.0 / SSL_WHEEL_RADIUS) *
+					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(303.2 * (M_PI / 180.0))) + (controlPacket.vy * cos(303.2 * (M_PI / 180.0)))));
 
-	  			MOTOR_2_PWM = map(fabs(controlPacket.vw2), 0, 40, 0, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, controlPacket.vw2 >= 0);
-	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(controlPacket.vw2) > 2);
+				if(fabs(wheelFrontLeft) >= 40.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -40.0f : 40.0f;
+				if(fabs(wheelBottomLeft) >= 40.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -40.0f : 40.0f;
+				if(fabs(wheelBottomRight) >= 40.0f) wheelBottomRight = (wheelBottomRight < 0) ? -40.0f : 40.0f;
+				if(fabs(wheelFrontRight) >= 40.0f) wheelFrontRight = (wheelFrontRight < 0) ? -40.0f : 40.0f;
 
-	  			MOTOR_4_PWM = map(fabs(controlPacket.vw3), 0, 40, 0, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, controlPacket.vw3 >= 0);
-	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(controlPacket.vw3) > 2);
+	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 40, 0, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
+	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
 
-	  			MOTOR_3_PWM = map(fabs(controlPacket.vw4), 0, 40, 0, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, controlPacket.vw4 >= 0);
-	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(controlPacket.vw4) > 2);
+	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 40, 0, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
+	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
+
+	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 40, 0, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
+	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
+
+	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 40, 0, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
+	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
+	  		}
+	  		else{
+	  			//deactivateESC();
 	  		}
 	  	  }
 

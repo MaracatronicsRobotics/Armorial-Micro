@@ -13,6 +13,25 @@ static long long ramp_begin;
 static int isDribblingRampActivated;
 
 static void calibrateESC() {
+	/*
+	ramp_begin = HAL_GetTick();
+	int calibrationValues[3] = {20000, 10000, 5000};
+	int delayValues[3] = {2, 1, 1};
+	int index = 0;
+	while(1) {
+		PWM_DRIBLE = calibrationValues[index];
+		if((HAL_GetTick() - ramp_begin) >= (delayValues[index] * 1000)) {
+			index = index + 1;
+			if(index == 3) break;
+		}
+		//PWM_DRIBLE = 20000;
+		//HAL_Delay(CALIBRATION_DELAY * 2);
+		//PWM_DRIBLE = 10000;
+		//HAL_Delay(CALIBRATION_DELAY);
+		//PWM_DRIBLE = 5000;
+		//HAL_Delay(CALIBRATION_DELAY);
+	}
+	*/
 	PWM_DRIBLE = 20000;
 	HAL_Delay(CALIBRATION_DELAY * 2);
 	PWM_DRIBLE = 10000;

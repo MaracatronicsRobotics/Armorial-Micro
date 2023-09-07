@@ -16,7 +16,7 @@ void Communication::setupEspNow() {
 
   // Init ESP-NOW
   if (esp_now_init() != ERR_OK) {
-    Serial.println("ESP-NOW initialization failed");
+    // Serial.println("ESP-NOW initialization failed");
     ESP.restart();
     return;
   }
@@ -35,11 +35,11 @@ bool Communication::sendFeedbackPacket(const FeedbackPacket &feedbackPacket) {
     return false;
   }
 
-  Serial.println("send");
+  // Serial.println("send");
 
   int ret = esp_now_send(baseStationMacAddr, (uint8_t *)&feedbackPacket,
                          sizeof(FeedbackPacket));
-  Serial.println(ret);
+  // Serial.println(ret);
 
   return (ret == ERR_OK);
 }
@@ -61,8 +61,8 @@ void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
         // Add peer
         int ret = esp_now_add_peer(baseStationMacAddr, ESP_NOW_ROLE_CONTROLLER,
                                    CONFIG_ESPNOW_CHANNEL, NULL, 0);
-        Serial.println("fon = ");
-        Serial.println(ret);
+        // Serial.println("fon = ");
+        // Serial.println(ret);
       }
 
       if (!checkIfMacIsBaseStation(mac)) {
