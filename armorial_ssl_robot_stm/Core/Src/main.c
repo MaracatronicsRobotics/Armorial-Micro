@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "crc.h"
 #include "packets.h"
+#include "drible.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -125,15 +126,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 
 
 //--- Calibração ESC ---
-void calibrateEsc() {
-	PWM_DRIBLE = 20000;
-	HAL_Delay(2000);
-	PWM_DRIBLE = 10000;
-	HAL_Delay(1000);
-	PWM_DRIBLE = 5000;
-	HAL_Delay(1000);
-	PWM_DRIBLE = 0;
-}
+
 
 //--- Leitura Hall ---
 
@@ -247,66 +240,26 @@ int main(void)
   // Starting ADC channel using DMA
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
 
-  /*
-   */
-
-  /*
-  PWM_DRIBLE = 20000;
-  HAL_Delay(2500);
-  int i = 0;
-  for (i = 1; i <= 100; i++) {
-	  PWM_DRIBLE = 20000 - (200 * i);
-	  HAL_Delay(25);
-  }
-
-  PWM_DRIBLE = 0;
-  HAL_Delay(1000);
-  */
-
-  /*
-  PWM_DRIBLE = 20000;
-  HAL_Delay(2500);
-  PWM_DRIBLE = 15000;
-  HAL_Delay(1000);
-  */
-
-  //PWM_DRIBLE = 0;
-
-  //int teste = 0;
-  calibrateEsc();
-
-  //PWM_DRIBLE = 0;
-  int sum = 0;
-  int reversed = 0;
+  // Calibrating ESC routine;
+  calibrateESC();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
+	  /// TODO: testing, remove later!
 	  try_kick();
-	  MOTOR_1_PWM = 50;
-	  MOTOR_2_PWM = 50;
-	  MOTOR_3_PWM = 50;
-	  MOTOR_4_PWM = 50;
-	  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, 1);
-	  HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, 1);
-	  HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, 1);
-	  HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, 1);
+	  MOTOR_1_PWM = 0;
+	  MOTOR_2_PWM = 0;
+	  MOTOR_3_PWM = 0;
+	  MOTOR_4_PWM = 0;
+	  HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, (MOTOR_1_PWM > 10));
+	  HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, (MOTOR_2_PWM > 10));
+	  HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, (MOTOR_3_PWM > 10));
+	  HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, (MOTOR_4_PWM > 10));
 	  PWM_CARREG_CHUTE = 140;
 	  PWM_BUZZER = 100;
-	  /*
-	   */
-	  PWM_DRIBLE = 5000;
-	  //teste = (teste + 1000) % 10000;
-	  //HAL_Delay(1000);
-	  /*
-	  PWM_DRIBLE = PWM_DRIBLE + 500;
-	  if (PWM_DRIBLE > 10000) {
-		  PWM_DRIBLE = 0;
-	  }
-	  */
-	  //PWM_DRIBLE = 9500;
 
 	  if(getMasterInput) {
 		  getMasterInput = 0;
