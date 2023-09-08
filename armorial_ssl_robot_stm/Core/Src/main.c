@@ -218,7 +218,8 @@ int main(void)
   }
 
   // Starting ADC channel using DMA
-  HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
+  //HAL_ADC_Start_DMA(&hadc1,(uint32_t*) &adc1, 6);
+
 
   /* USER CODE END 2 */
 
@@ -228,6 +229,9 @@ int main(void)
 	  // Kick verification
 	  verify_kick_charge();
 	  verify_kick_activation();
+	  HAL_ADC_Start(&hadc1); // start the adc
+	  HAL_ADC_PollForConversion(&hadc1, 100); // poll for conversion
+	  adc1[LEITURA_CHUTE] = HAL_ADC_GetValue(&hadc1); // get the adc value
 
 	  // Check I2C communication
 	  if(getMasterInput) {
