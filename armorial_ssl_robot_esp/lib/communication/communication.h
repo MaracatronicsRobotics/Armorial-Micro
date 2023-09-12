@@ -9,7 +9,7 @@
 #define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
 
-#define FEEDBACK_TIME 1.0 // seconds
+#define FEEDBACK_TIME 0.016 // seconds
 
 class Communication {
 public:
