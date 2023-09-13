@@ -1,10 +1,12 @@
 #MicroXplorer Configuration settings - do not modify
 ADC2.Channel-1\#ChannelRegularConversion=ADC_CHANNEL_13
+ADC2.ClockPrescaler=ADC_CLOCK_SYNC_PCLK_DIV2
 ADC2.ContinuousConvMode=ENABLE
-ADC2.IPParameters=Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion,NbrOfConversionFlag,ContinuousConvMode
+ADC2.IPParameters=Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion,NbrOfConversionFlag,ContinuousConvMode,ClockPrescaler,ScanConvMode
 ADC2.NbrOfConversionFlag=1
 ADC2.Rank-1\#ChannelRegularConversion=1
 ADC2.SamplingTime-1\#ChannelRegularConversion=ADC_SAMPLETIME_3CYCLES
+ADC2.ScanConvMode=ENABLE
 CAD.formats=
 CAD.pinconfig=
 CAD.provider=
@@ -72,10 +74,10 @@ Mcu.UserConstants=
 Mcu.UserName=STM32F407VETx
 MxCube.Version=6.9.1
 MxDb.Version=DB.6.0.91
-NVIC.ADC_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
+NVIC.ADC_IRQn=true\:1\:0\:true\:false\:true\:true\:true\:true
 NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
-NVIC.EXTI15_10_IRQn=true\:1\:0\:true\:false\:true\:true\:true\:true
+NVIC.EXTI15_10_IRQn=true\:5\:0\:true\:false\:true\:true\:true\:true
 NVIC.EXTI4_IRQn=true\:1\:0\:true\:false\:true\:true\:true\:true
 NVIC.EXTI9_5_IRQn=true\:1\:0\:true\:false\:true\:true\:true\:true
 NVIC.ForceEnableDMAVector=true

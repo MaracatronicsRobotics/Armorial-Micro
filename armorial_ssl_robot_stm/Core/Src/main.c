@@ -115,6 +115,8 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 typedef enum {charged = 0, charging=1, kicking=2} kick_state;
 kick_state kickState = kicking;
 long long timer_kick = 0;
+long long timer_readings = 0;
+float kickCmd = 0;
 
 void turn_kick_charge_on() {PWM_CARREG_CHUTE = 140;}
 void turn_kick_charge_off() {PWM_CARREG_CHUTE = 0;}
@@ -154,7 +156,16 @@ void kick() {
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	adc1[LEITURA_CHUTE] = HAL_ADC_GetValue(&hadc2);
+	if (hadc->Instance == ADC2) {
+		adc1[LEITURA_CHUTE] = HAL_ADC_GetValue(&hadc2);
+	}
+}
+
+void try_read_ADC() {
+	if (HAL_GetTick() - timer_readings >= 5) {
+		HAL_ADC_Start_IT(&hadc2);
+		timer_readings = HAL_GetTick();
+	}
 }
 
 /* USER CODE END 0 */
@@ -220,9 +231,7 @@ int main(void)
 	  Error_Handler();
   }
 
-
   // Starting ADC channel using DMA
-//  HAL_ADC_Start_DMA(&hadc2,(uint32_t*) &adc1, 1);
 
 
   /* USER CODE END 2 */
@@ -234,16 +243,20 @@ int main(void)
 	  verify_kick_charge();
 	  verify_kick_activation();
 
+	  //  ADC readings
+	  try_read_ADC();
+
 	  // Check I2C communication
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
-			  	robotFeedback.vw1_encoder = (int) (adc1[LEITURA_CHUTE]);
-				robotFeedback.vw2_encoder = (int) (adc1[LEITURA_BATERIA]);
-				robotFeedback.vw3_encoder = (int) (adc1[LEITURA_8V]);
-				robotFeedback.vw4_encoder = (int) (adc1[LEITURA_5V]);
+			  	robotFeedback.vw1_encoder = (float) (adc1[LEITURA_CHUTE]);
+				robotFeedback.vw2_encoder = (float) (adc1[LEITURA_BATERIA]);
+				robotFeedback.vw3_encoder = (float) (adc1[LEITURA_8V]);
+				robotFeedback.vw4_encoder = (float) (adc1[LEITURA_5V]);
+				robotFeedback.gyro_x = (float) (kickCmd);
 			  	robotFeedback.timestamp = HAL_GetTick() * 1000; // microsecond
 			  	robotFeedback.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*)&robotFeedback, sizeof(FeedbackPacket));
 			  	memcpy(txBuffer, &robotFeedback, sizeof(FeedbackPacket));
@@ -271,6 +284,9 @@ int main(void)
 
 	  			if(controlPacket.solenoidPower) {
 	  				kick();
+	  				kickCmd = 1000;
+	  			} else if (!controlPacket.solenoidPower) {
+	  				kickCmd = 0;
 	  			}
 
 	  			/// TODO: process this packet with a method call (?)
@@ -390,7 +406,7 @@ static void MX_ADC2_Init(void)
   hadc2.Instance = ADC2;
   hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc2.Init.ScanConvMode = DISABLE;
+  hadc2.Init.ScanConvMode = ENABLE;
   hadc2.Init.ContinuousConvMode = ENABLE;
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -845,7 +861,7 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
