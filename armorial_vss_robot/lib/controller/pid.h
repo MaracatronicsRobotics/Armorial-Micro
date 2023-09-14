@@ -15,8 +15,6 @@ public:
   float getOutput();
 
 private:
-  // Errors
-  float _errorSum = 0.0f;
   float _lastError = 0.0f;
 
   // Constants
