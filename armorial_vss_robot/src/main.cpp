@@ -4,6 +4,9 @@
 #include <encoder.h>
 #include <mpu.h>
 
+#define COMMUNICATION_PIN 4
+#define COMMUNICATION_PIN_ID 5
+
 Encoder *encoder = new Encoder();
 Controller *controller = new Controller(encoder);
 Communication *communication = new Communication(controller);
@@ -36,6 +39,10 @@ void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
 
+  // Setup LED pin
+  ledcSetup(COMMUNICATION_PIN_ID, 60, 2);
+  ledcAttachPin(COMMUNICATION_PIN, COMMUNICATION_PIN_ID);
+
   // Setup H-Bridge and PWM pins
   Controller::setupPWMPins();
 
@@ -53,13 +60,12 @@ void setup() {
 
 void loop() {
   controller->drive();
+  ledcWrite(COMMUNICATION_PIN_ID, 255);
   // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 255);
   // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 0);
 
   // ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, 255);
   // ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, 0);
-
-  // delay(5000);
 
   // ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, 0);
   // ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, 255);
