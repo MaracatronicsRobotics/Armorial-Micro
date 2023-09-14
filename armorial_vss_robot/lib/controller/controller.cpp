@@ -2,14 +2,8 @@
 #include <algorithm>
 #include <interpolation.h>
 
-// Interpolate points (radSec, PWM)
-double interpolate_x[] = {0.0,  3.69, 5.0,  10.0, 13.0,  16.0,  20.0, 22.0,
-                          23.0, 24.0, 25.0, 26.0, 26.92, 28.72, 30.0};
-double interpolate_y[] = {0.0,   60.0,  70.0,  80.0,  90.0,
-                          100.0, 110.0, 120.0, 130.0, 140.0,
-                          150.0, 170.0, 190.0, 220.0, 255.0};
-
-int interpolate_numPoints = sizeof(interpolate_x) / sizeof(interpolate_x[0]);
+#define WHEELS_DISTANCE 0.075f
+#define WHEELS_DIAMETER 0.052f
 
 Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   ControlPacket controlPacket;
@@ -20,8 +14,8 @@ Controller::Controller(Encoder *encoder) : _encoder(encoder) {
   controlPacket.vw = 0;
   setControlPacket(controlPacket);
 
-  _wheel1 = new PID();
-  _wheel2 = new PID();
+  _leftWheel = new PID();
+  _rightWheel = new PID();
   _mpu_pid = new PID();
 
   _mpu_pid->setConstants(1.0f, 0.0f, 0.0f);
@@ -50,51 +44,91 @@ void Controller::drive() {
   if (fabs(getControlPacket().vx) >= 0.01f ||
       fabs(getControlPacket().vw) >= 0.20) {
     float vx = getControlPacket().vx;
-    float vw = getControlPacket().vw * RAD_TO_DEG;
+    float vw = getControlPacket().vw;
 
-    _mpu_pid->setActualValue(_mpu->getGyroZ());
-    _mpu_pid->setSetPoint(vw);
-    float linear = 0.0f;
-    float angular;
+  // // if (abs(_last_control_packet.vx - vx) > VX_MAX_VARIANCE) {
+  //   //   _motor1->resetPID();
+  //   //   _motor2->resetPID();
+
+  //   //   _motor1->calculatePWM();
+  //   //   _motor2->calculatePWM();
+  //   // }
+  //   // _mpu_pid->setActualValue(_mpu->getGyroZ());
+  //   // _mpu_pid->setSetPoint(vw);
+  //   // float linear = 0.0f;
+  //   // float angular;
     
-    if(fabs(vw)<=2){
-      angular = 0;
-    }else{
-      angular = vw + _mpu_pid->getOutput();
-    }
+  //   // if(fabs(vw)<=2){
+  //   //   angular = 0;
+  //   // }else{
+  //   //   angular = vw + _mpu_pid->getOutput();
+  //   // }
 
-    if (vx >= 0.0f) {
-      linear = Utils::fmap(vx, 0.0f, 1.0f, 30.0f, 180.0f);
-    } else {
-      linear = Utils::fmap(vx, -1.0f, 0.0f, -180.0f, -30.0f);
-    }
+  //   // if (vx >= 0.0f) {
+  //   //   linear = Utils::fmap(vx, 0.0f, 1.0f, 0.0f, 255.0f);
+  //   // } else {
+  //   //   linear = Utils::fmap(vx, -1.0f, 0.0f, -255.0f, 0.0f);
+  //   // }
 
-    velR = linear - angular;
-    velL = linear + angular;
+  //   // velR = -linear + angular;
+  //   // velL = -linear - angular;
 
-    if (velR < 15 && velR > -15)
-      velR = 0;
-    if (velR > 255)
-      velR = 255;
-    if (velR < -255)
-      velR = -255;
-
-    if (velL < 15 && velL > -15)
-      velL = 0;
-    if (velL > 255)
-      velL = 255;
-    if (velL < -255)
-      velL = -255;
+    velR = (2 * vx + WHEELS_DISTANCE * vw) / WHEELS_DIAMETER;
+    velL = (2 * vx - WHEELS_DISTANCE * vw) / WHEELS_DIAMETER;
   }
 
   setLastControlPacket(getControlPacket());
 
-  // Set PWM pin values
-  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, velL > 0 ? abs(velL) : 0);
-  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, velL <= 0 ? abs(velL) : 0);
+  // Obtendo respostas dos encoders
+  float rightEncoder = _encoder->getAngularSpeedWR();
+  float leftEncoder = _encoder->getAngularSpeedWL();
 
-  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, velR > 0 ? abs(velR) : 0);
-  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, velR <= 0 ? abs(velR) : 0);
+  // Definindo relações lineares e angulares das rodas
+  float deltaW = rightEncoder - leftEncoder;
+  float sumW = rightEncoder + leftEncoder;
+
+  // Definição da realimentação
+  float realRightWheel = (sumW + deltaW) / 2;
+  float realLeftWheel = (sumW - deltaW) / 2;
+
+  // Set PIDs setpoints
+  _rightWheel->setSetPoint(velR);
+  _leftWheel->setSetPoint(velL);
+
+  // Set PIDs actual values
+  _rightWheel->setActualValue(realRightWheel);
+  _leftWheel->setActualValue(realLeftWheel);
+
+  // Set PIDs constants
+  _rightWheel->setConstants(100.0f, 0.0f, 0.0f);
+  _leftWheel->setConstants(100.0f, 0.0f, 0.0f);
+
+  // Get PIDs outputs
+  float rightOutput = _rightWheel->getOutput();
+  float leftOutput = _leftWheel->getOutput();
+
+  // Creating PWM convertion
+  int rightPWM = getPWMConversion(rightOutput);
+  int leftPWM = getPWMConversion(leftOutput);
+
+  // Defining wheels dead zone
+  if (fabs(rightPWM) < 50) rightPWM = 0;
+  if (fabs(leftPWM) < 50) leftPWM = 0;
+
+  // Defining right wheel saturation
+  rightPWM = std::min(rightPWM, 255);
+  rightPWM = std::max(rightPWM, -255);
+  
+  // Defining left wheel saturation
+  leftPWM = std::min(leftPWM, 255);
+  leftPWM = std::max(leftPWM, -255);
+
+  // Set PWM pin values
+  ledcWrite(WHEEL_LEFT_FORWARD_PIN_ID, leftPWM > 0 ? fabs(leftPWM) : 0);
+  ledcWrite(WHEEL_LEFT_BACKWARD_PIN_ID, leftPWM <= 0 ? fabs(leftPWM) : 0);
+
+  ledcWrite(WHEEL_RIGHT_FORWARD_PIN_ID, rightPWM > 0 ? fabs(rightPWM) : 0);
+  ledcWrite(WHEEL_RIGHT_BACKWARD_PIN_ID, rightPWM <= 0 ? fabs(rightPWM) : 0);
 }
 
 void Controller::setupPWMPins() {
@@ -109,10 +143,15 @@ void Controller::setupPWMPins() {
   ledcAttachPin(WHEEL_RIGHT_BACKWARD_PIN, WHEEL_RIGHT_BACKWARD_PIN_ID);
 }
 
+float Controller::getPWMConversion(float radianSpeed) {
+  return static_cast<int>(0.0113f * pow(radianSpeed, 3) - 
+    0.5414f * pow(radianSpeed, 2) + 9.1374f * radianSpeed - 3.3815f);
+}
+
 float Controller::getVX(float leftWheelVelocity, float rightWheelVelocity) {
-  return (leftWheelVelocity + rightWheelVelocity) * 0.053f / 4;
+  return (leftWheelVelocity + rightWheelVelocity) * 0.052f / 4;
 }
 
 float Controller::getVW(float leftWheelVelocity, float rightWheelVelocity) {
-  return (rightWheelVelocity - leftWheelVelocity) * 0.053f / (2 * 0.075f);
+  return (rightWheelVelocity - leftWheelVelocity) * 0.052f / (2 * 0.075f);
 }

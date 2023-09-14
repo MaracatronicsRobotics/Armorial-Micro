@@ -42,8 +42,8 @@ private:
   MPU *_mpu;
   ControlPacket _control_packet;
   LastControlPacket _last_control_packet;
-  PID *_wheel1;
-  PID *_wheel2;
+  PID *_leftWheel;
+  PID *_rightWheel;
   PID *_mpu_pid;
 };
 
