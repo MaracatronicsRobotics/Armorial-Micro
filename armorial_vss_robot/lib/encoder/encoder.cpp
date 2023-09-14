@@ -10,8 +10,8 @@ std::function<void()> Encoder::callback = nullptr;
 SimpleKalmanFilter Encoder::_kalman_wr = SimpleKalmanFilter(0.1, 0.1, 0.01);
 SimpleKalmanFilter Encoder::_kalman_wl = SimpleKalmanFilter(0.1, 0.1, 0.01);
 
-float Encoder::getAngularSpeedWL() { return angular_speed_wl; }
-float Encoder::getAngularSpeedWR() { return -angular_speed_wr; }
+float Encoder::getAngularSpeedWL() { return -angular_speed_wl; }
+float Encoder::getAngularSpeedWR() { return angular_speed_wr; }
 
 void Encoder::computeEncoderCallback(void *arg) {
   angular_speed_wl = _kalman_wl.updateEstimate(
@@ -28,8 +28,8 @@ void Encoder::computeEncoderCallback(void *arg) {
 }
 
 void Encoder::handleEncoderWL() {
-  int pin_state_1 = digitalRead(PIN_ENCODER_1_A);
-  int pin_state_2 = digitalRead(PIN_ENCODER_1_B);
+  int pin_state_1 = digitalRead(PIN_ENCODER_LEFT_A);
+  int pin_state_2 = digitalRead(PIN_ENCODER_LEFT_B);
 
   if (pin_state_1 == pin_state_2)
     encoder_count_wl++;
@@ -38,8 +38,8 @@ void Encoder::handleEncoderWL() {
 }
 
 void Encoder::handleEncoderWR() {
-  int pin_state_1 = digitalRead(PIN_ENCODER_2_A);
-  int pin_state_2 = digitalRead(PIN_ENCODER_2_B);
+  int pin_state_1 = digitalRead(PIN_ENCODER_RIGHT_A);
+  int pin_state_2 = digitalRead(PIN_ENCODER_RIGHT_B);
 
   if (pin_state_1 == pin_state_2)
     encoder_count_wr++;
@@ -48,14 +48,14 @@ void Encoder::handleEncoderWR() {
 }
 
 void Encoder::setup() {
-  pinMode(PIN_ENCODER_1_A, INPUT_PULLUP);
-  pinMode(PIN_ENCODER_1_B, INPUT_PULLUP);
-  pinMode(PIN_ENCODER_2_A, INPUT_PULLUP);
-  pinMode(PIN_ENCODER_2_B, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_RIGHT_A, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_RIGHT_B, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_LEFT_A, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_LEFT_B, INPUT_PULLUP);
 
-  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_1_A),
+  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_LEFT_A),
                   &Encoder::handleEncoderWL, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_2_A),
+  attachInterrupt(digitalPinToInterrupt(PIN_ENCODER_RIGHT_A),
                   &Encoder::handleEncoderWR, CHANGE);
 
   esp_timer_handle_t encoder_timer;
