@@ -231,6 +231,8 @@ int main(void)
 	  Error_Handler();
   }
 
+  float vx, vy, vw;
+
   // Starting ADC channel using DMA
 
 
@@ -252,6 +254,9 @@ int main(void)
 		  if (getTransferDirection == 0) {
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
+			  	robotFeedback.vx = vx;
+			  	robotFeedback.vy = vy;
+			  	robotFeedback.vw = vw;
 			  	robotFeedback.vw1_encoder = (float) (adc1[LEITURA_CHUTE]);
 				robotFeedback.vw2_encoder = (float) (adc1[LEITURA_BATERIA]);
 				robotFeedback.vw3_encoder = (float) (adc1[LEITURA_8V]);
@@ -288,6 +293,10 @@ int main(void)
 	  			} else if (!controlPacket.solenoidPower) {
 	  				kickCmd = 0;
 	  			}
+
+	  			vx = controlPacket.vx;
+	  			vy = controlPacket.vy;
+	  			vw = controlPacket.vw;
 
 	  			/// TODO: process this packet with a method call (?)
 	  			float wheelFrontLeft =
@@ -548,7 +557,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 64;
+  htim3.Init.Prescaler = 128;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
