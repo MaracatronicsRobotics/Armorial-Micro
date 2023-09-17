@@ -3,7 +3,7 @@
 
 #define PWM_DRIBLE TIM4->CCR1
 #define CALIBRATION_DELAY 1000
-#define RAMP_DELAY 50
+#define RAMP_DELAY 100
 #define BASE_PWM 5000
 #define STEP 50
 #define MAX_PWM 6000

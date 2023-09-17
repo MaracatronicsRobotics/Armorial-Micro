@@ -299,37 +299,29 @@ int main(void)
 	  			vw = controlPacket.vw;
 
 	  			/// TODO: process this packet with a method call (?)
-	  			float wheelFrontLeft =
-					(1.0 / SSL_WHEEL_RADIUS) *
-					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(56.8 * (M_PI / 180.0))) + (controlPacket.vy * cos(56.8 * (M_PI / 180.0)))));
-	  			float wheelBottomLeft =
-					(1.0 / SSL_WHEEL_RADIUS) *
-					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(135.4 * (M_PI / 180.0))) + (controlPacket.vy * cos(135.4 * (M_PI / 180.0)))));
-				float wheelBottomRight =
-					(1.0 / SSL_WHEEL_RADIUS) *
-					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(225 * (M_PI / 180.0))) + (controlPacket.vy * cos(225 * (M_PI / 180.0)))));
-				float wheelFrontRight =
-					(1.0 / SSL_WHEEL_RADIUS) *
-					(((SSL_WHEELS_DISTANCE_TO_CENTER * controlPacket.vw) - (controlPacket.vx * sin(303.2 * (M_PI / 180.0))) + (controlPacket.vy * cos(303.2 * (M_PI / 180.0)))));
+	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
 
-				if(fabs(wheelFrontLeft) >= 40.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -40.0f : 40.0f;
-				if(fabs(wheelBottomLeft) >= 40.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -40.0f : 40.0f;
-				if(fabs(wheelBottomRight) >= 40.0f) wheelBottomRight = (wheelBottomRight < 0) ? -40.0f : 40.0f;
-				if(fabs(wheelFrontRight) >= 40.0f) wheelFrontRight = (wheelFrontRight < 0) ? -40.0f : 40.0f;
+				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
 
-	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 40, 0, 100);
+	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
 	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
 
-	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 40, 0, 100);
+	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
 	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
 
-	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 40, 0, 100);
+	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
 	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
 
-	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 40, 0, 100);
+	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
 	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
 	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 	  		}
