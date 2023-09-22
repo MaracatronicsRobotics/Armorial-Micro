@@ -119,7 +119,9 @@ typedef enum {charged = 0, charging=1, kicking=2} kick_state;
 kick_state kickState = kicking;
 long long timer_kick = 0;
 long long timer_readings = 0;
+long long timer_led = 0;
 float kickCmd = 0;
+int high = 0;
 
 void turn_kick_charge_on() {PWM_CARREG_CHUTE = 140;}
 void turn_kick_charge_off() {PWM_CARREG_CHUTE = 0;}
@@ -166,8 +168,16 @@ void kick() {
 //
 void try_read_ADC() {
 	if (HAL_GetTick() - timer_readings >= 250) {
-		HAL_ADC_Start(&hadc1);
-		timer_readings = HAL_GetTick();
+	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc1[5], 1);
+	  timer_readings = HAL_GetTick();
+	}
+}
+
+void blink() {
+	if (HAL_GetTick() - timer_led >= 1000) {
+	  HAL_GPIO_WritePin(GPIOA, LED2_Pin, high);
+	  high = (high + 1) % 2;
+	  timer_led = HAL_GetTick();
 	}
 }
 
@@ -235,12 +245,10 @@ int main(void)
 	  Error_Handler();
   }
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc1[5], 1);
-
   float vx, vy, vw;
 
   // Starting ADC channel using DMA
-
+//  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc1[5], 1);
 
   /* USER CODE END 2 */
 
@@ -252,21 +260,24 @@ int main(void)
 	  verify_kick_activation();
 
 	  //  ADC readings
-	  try_read_ADC();
+//	  try_read_ADC();
+	  blink();
 
 	  // Check I2C communication
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
+			  	float wheels[4];
+			  	getWheels(wheels);
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
 			  	robotFeedback.vx = vx;
 			  	robotFeedback.vy = vy;
 			  	robotFeedback.vw = vw;
-			  	robotFeedback.vw1_encoder = (float) (adc1[LEITURA_CHUTE]);
-				robotFeedback.vw2_encoder = (float) (adc1[LEITURA_BATERIA]);
-				robotFeedback.vw3_encoder = (float) (adc1[LEITURA_8V]);
-				robotFeedback.vw4_encoder = (float) (adc1[LEITURA_5V]);
+			  	robotFeedback.vw1_encoder = wheels[0];
+				robotFeedback.vw2_encoder = wheels[1];
+				robotFeedback.vw3_encoder = wheels[2];
+				robotFeedback.vw4_encoder = wheels[3];
 				robotFeedback.gyro_x = (float) (kickCmd);
 			  	robotFeedback.timestamp = HAL_GetTick() * 1000; // microsecond
 			  	robotFeedback.crc = compute_crc16cdma2000_byte(CRC_INITIAL_VALUE, (char*)&robotFeedback, sizeof(FeedbackPacket));
@@ -806,7 +817,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|LED2_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, EN_M3_Pin|FWD_REV_M4_Pin, GPIO_PIN_RESET);
@@ -846,8 +857,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EN_M1_Pin FWD_REV_M3_Pin */
-  GPIO_InitStruct.Pin = EN_M1_Pin|FWD_REV_M3_Pin;
+  /*Configure GPIO pins : EN_M1_Pin LED2_Pin FWD_REV_M3_Pin */
+  GPIO_InitStruct.Pin = EN_M1_Pin|LED2_Pin|FWD_REV_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

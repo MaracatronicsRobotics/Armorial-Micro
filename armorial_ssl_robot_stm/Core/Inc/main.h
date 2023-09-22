@@ -80,6 +80,8 @@ void Error_Handler(void);
 #define EN_M1_GPIO_Port GPIOA
 #define PWM_M2_Pin GPIO_PIN_6
 #define PWM_M2_GPIO_Port GPIOA
+#define LED2_Pin GPIO_PIN_7
+#define LED2_GPIO_Port GPIOA
 #define PWM_M1_Pin GPIO_PIN_0
 #define PWM_M1_GPIO_Port GPIOB
 #define H2_M1_Pin GPIO_PIN_13
