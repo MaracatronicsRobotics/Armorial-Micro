@@ -24,6 +24,7 @@
 #include "crc.h"
 #include "packets.h"
 #include "drible.h"
+#include "locomotions.h"
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
@@ -109,10 +110,10 @@ static void MX_ADC1_Init(void);
 /* USER CODE BEGIN 0 */
 
 //--- Map ---
-long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+//long map(long x, long in_min, long in_max, long out_min, long out_max)
+//{
+//  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+//}
 
 typedef enum {charged = 0, charging=1, kicking=2} kick_state;
 kick_state kickState = kicking;
@@ -303,32 +304,34 @@ int main(void)
 	  			vy = controlPacket.vy;
 	  			vw = controlPacket.vw;
 
+	  			calcWheelsPWM(vx, vy, vw);
+
 	  			/// TODO: process this packet with a method call (?)
-	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-
-				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
-
-	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
-	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
-
-	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
-	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
-
-	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
-	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
-
-	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
-	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
+//	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//
+//				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
+//
+//	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
+//	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
+//
+//	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
+//	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
+//
+//	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
+//	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
+//
+//	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
+//	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 	  		}
 	  	  }
 
