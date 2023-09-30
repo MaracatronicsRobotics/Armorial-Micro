@@ -36,6 +36,13 @@ int H1_M3_Counter = 0;
 int H1_M4_Counter = 0;
 float wheels_RPM[4];
 
+uint8_t M1_State = 1; // 1 or -1 depending on wheel direction
+uint8_t M2_State = 1;
+uint8_t M3_State = 1;
+uint8_t M4_State = 1;
+
+int direction = 1;
+
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -79,11 +86,15 @@ static void calcWheelsPWM(float vx, float vy, float vw) {
 }
 
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+void hallSensorReadings(uint16_t GPIO_Pin) {
 	long long timestamp = HAL_GetTick();
 	switch (GPIO_Pin) {
 		case H1_M1_Pin: {
+			if (HAL_GPIO_ReadPin(H2_M1_GPIO_Port, H2_M1_Pin)) M1_State = -1 * direction;
+			else M1_State = 1;
+
 			if (timestamp - H1_M1_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+				H1_M1_read_begin = timestamp;
 				wheels_RPM[0] = H1_M1_Counter * 60; // RPS -> RPM
 				H1_M1_Counter = 0;
 			} else {
@@ -91,24 +102,36 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 			}
 		} break;
 		case H1_M2_Pin: {
+			if (HAL_GPIO_ReadPin(H2_M2_GPIO_Port, H2_M2_Pin)) M2_State = -1 * direction;
+			else M2_State = 1;
+
 			if (timestamp - H1_M2_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-				wheels_RPM[0] = H1_M2_Counter * 60; // RPS -> RPM
+				H1_M2_read_begin = timestamp;
+				wheels_RPM[1] = H1_M2_Counter * 60; // RPS -> RPM
 				H1_M2_Counter = 0;
 			} else {
 				H1_M2_Counter = H1_M2_Counter + 1;
 			}
 		} break;
 		case H1_M3_Pin: {
+			if (HAL_GPIO_ReadPin(H2_M3_GPIO_Port, H2_M3_Pin)) M3_State = -1 * direction;
+			else M3_State = 1;
+
 			if (timestamp - H1_M3_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-				wheels_RPM[0] = H1_M3_Counter * 60; // RPS -> RPM
+				H1_M3_read_begin = timestamp;
+				wheels_RPM[2] = H1_M3_Counter * 60; // RPS -> RPM
 				H1_M3_Counter = 0;
 			} else {
 				H1_M3_Counter = H1_M3_Counter + 1;
 			}
 		} break;
 		case H1_M4_Pin: {
+			if (HAL_GPIO_ReadPin(H2_M4_GPIO_Port, H2_M4_Pin)) M4_State = -1 * direction;
+			else M4_State = 1;
+
 			if (timestamp - H1_M4_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-				wheels_RPM[0] = H1_M4_Counter * 60; // RPS -> RPM
+				H1_M4_read_begin = timestamp;
+				wheels_RPM[3] = H1_M4_Counter * 60; // RPS -> RPM
 				H1_M4_Counter = 0;
 			} else {
 				H1_M4_Counter = H1_M4_Counter + 1;
@@ -118,10 +141,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 static void getWheels(float *wheels) {
-	wheels[0] = wheels_RPM[0];
-	wheels[1] = wheels_RPM[1];
-	wheels[2] = wheels_RPM[2];
-	wheels[3] = wheels_RPM[3];
+	wheels[0] = (wheels_RPM[0] * 2.0 * M_PI * 0.0005) / 60.0;
+	wheels[1] = (wheels_RPM[1] * 2.0 * M_PI * 0.0005) / 60.0;
+	wheels[2] = (wheels_RPM[2] * 2.0 * M_PI * 0.0005) / 60.0;
+	wheels[3] = (wheels_RPM[3] * 2.0 * M_PI * 0.0005) / 60.0;
 }
 
 #endif // ARMORIAL_SUASSUNA_LOCOMOTIONS_H
