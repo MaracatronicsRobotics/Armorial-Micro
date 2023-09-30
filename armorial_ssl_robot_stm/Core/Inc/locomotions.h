@@ -8,6 +8,8 @@
 #define MOTOR_3_PWM TIM3->CCR2
 #define MOTOR_4_PWM TIM3->CCR4
 
+#define HALL_SENSOR_TIMER_DELAY 1000
+
 static float degToRad = M_PI / 180;
 
 static float wheel1Angle = 60;
@@ -22,6 +24,17 @@ float wheelFrontLeft = 0;
 float wheelBottomLeft = 0;
 float wheelBottomRight = 0;
 float wheelFrontRight = 0;
+
+long long H1_M1_read_begin;
+long long H1_M2_read_begin;
+long long H1_M3_read_begin;
+long long H1_M4_read_begin;
+
+int H1_M1_Counter = 0;
+int H1_M2_Counter = 0;
+int H1_M3_Counter = 0;
+int H1_M4_Counter = 0;
+float wheels_RPM[4];
 
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
@@ -65,11 +78,50 @@ static void calcWheelsPWM(float vx, float vy, float vw) {
 	HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 }
 
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	long long timestamp = HAL_GetTick();
+	switch (GPIO_Pin) {
+		case H1_M1_Pin: {
+			if (timestamp - H1_M1_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+				wheels_RPM[0] = H1_M1_Counter * 60; // RPS -> RPM
+				H1_M1_Counter = 0;
+			} else {
+				H1_M1_Counter = H1_M1_Counter + 1;
+			}
+		} break;
+		case H1_M2_Pin: {
+			if (timestamp - H1_M2_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+				wheels_RPM[0] = H1_M2_Counter * 60; // RPS -> RPM
+				H1_M2_Counter = 0;
+			} else {
+				H1_M2_Counter = H1_M2_Counter + 1;
+			}
+		} break;
+		case H1_M3_Pin: {
+			if (timestamp - H1_M3_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+				wheels_RPM[0] = H1_M3_Counter * 60; // RPS -> RPM
+				H1_M3_Counter = 0;
+			} else {
+				H1_M3_Counter = H1_M3_Counter + 1;
+			}
+		} break;
+		case H1_M4_Pin: {
+			if (timestamp - H1_M4_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+				wheels_RPM[0] = H1_M4_Counter * 60; // RPS -> RPM
+				H1_M4_Counter = 0;
+			} else {
+				H1_M4_Counter = H1_M4_Counter + 1;
+			}
+		} break;
+	}
+}
+
 static void getWheels(float *wheels) {
-	wheels[0] = MOTOR_1_PWM;
-	wheels[1] = MOTOR_2_PWM;
-	wheels[2] = MOTOR_3_PWM;
-	wheels[3] = MOTOR_4_PWM;
+	wheels[0] = wheels_RPM[0];
+	wheels[1] = wheels_RPM[1];
+	wheels[2] = wheels_RPM[2];
+	wheels[3] = wheels_RPM[3];
 }
 
 #endif // ARMORIAL_SUASSUNA_LOCOMOTIONS_H
