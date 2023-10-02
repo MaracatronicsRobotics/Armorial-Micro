@@ -63,7 +63,6 @@ void Error_Handler(void);
 #define H2_M2_GPIO_Port GPIOE
 #define H1_M2_Pin GPIO_PIN_4
 #define H1_M2_GPIO_Port GPIOE
-#define H1_M2_EXTI_IRQn EXTI4_IRQn
 #define DISPARO_CHIP_KICK_Pin GPIO_PIN_5
 #define DISPARO_CHIP_KICK_GPIO_Port GPIOE
 #define FWD_REV_M2_Pin GPIO_PIN_6
@@ -88,12 +87,10 @@ void Error_Handler(void);
 #define H2_M1_GPIO_Port GPIOE
 #define H1_M1_Pin GPIO_PIN_15
 #define H1_M1_GPIO_Port GPIOE
-#define H1_M1_EXTI_IRQn EXTI15_10_IRQn
 #define H2_M3_Pin GPIO_PIN_15
 #define H2_M3_GPIO_Port GPIOB
 #define H1_M3_Pin GPIO_PIN_9
 #define H1_M3_GPIO_Port GPIOD
-#define H1_M3_EXTI_IRQn EXTI9_5_IRQn
 #define PWM_DRIBLE_Pin GPIO_PIN_12
 #define PWM_DRIBLE_GPIO_Port GPIOD
 #define PWM_M3_Pin GPIO_PIN_7
@@ -110,7 +107,6 @@ void Error_Handler(void);
 #define EN_M4_GPIO_Port GPIOB
 #define H1_M4_Pin GPIO_PIN_8
 #define H1_M4_GPIO_Port GPIOB
-#define H1_M4_EXTI_IRQn EXTI9_5_IRQn
 #define H2_M4_Pin GPIO_PIN_0
 #define H2_M4_GPIO_Port GPIOE
 

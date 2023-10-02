@@ -59,6 +59,7 @@ uint32_t adc1[6];
 #define MOTOR_4_PWM TIM3->CCR4
 
 #define PWM_CARREG_CHUTE TIM2->CCR2
+#define CHARGE_TIME 4000
 
 #define PWM_DRIBLE TIM4->CCR1
 
@@ -134,7 +135,7 @@ void turn_kick_off() {
 
 void verify_kick_charge() {
 	if (kickState == charging) {
-		if (HAL_GetTick() - timer_kick >= 2000) {
+		if (HAL_GetTick() - timer_kick >= CHARGE_TIME) {
 			kickState = charged;
 			turn_kick_charge_off();
 		}
@@ -181,6 +182,7 @@ void blink() {
 	}
 }
 
+// not used
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	hallSensorReadings(GPIO_Pin);
 }
@@ -272,6 +274,8 @@ int main(void)
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
 			  	float wheels[4];
+			  	monitorateHall(wheels);
+			  	HAL_Delay(10);
 			  	getWheels(wheels);
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
@@ -321,32 +325,32 @@ int main(void)
 
 	  			calcWheelsPWM(vx, vy, vw);
 
-	  			/// TODO: process this packet with a method call (?)
-//	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//
-//				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
-//
-//	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
-//	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
-//
-//	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
-//	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
-//
-//	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
-//	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
-//
-//	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
-//	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
+	  			// TODO: process this packet with a method call (?)
+	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+
+				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
+				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
+
+	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
+	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
+
+	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
+	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
+
+	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
+	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
+
+	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
+	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
+	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 	  		}
 	  	  }
 
@@ -829,15 +833,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : H2_M2_Pin H2_M1_Pin H2_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M2_Pin|H2_M1_Pin|H2_M4_Pin;
+  /*Configure GPIO pins : H2_M2_Pin H1_M2_Pin H2_M1_Pin H1_M1_Pin
+                           H2_M4_Pin */
+  GPIO_InitStruct.Pin = H2_M2_Pin|H1_M2_Pin|H2_M1_Pin|H1_M1_Pin
+                          |H2_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : H1_M2_Pin H1_M1_Pin */
-  GPIO_InitStruct.Pin = H1_M2_Pin|H1_M1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
@@ -868,15 +868,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : H2_M3_Pin */
-  GPIO_InitStruct.Pin = H2_M3_Pin;
+  /*Configure GPIO pins : H2_M3_Pin H1_M4_Pin */
+  GPIO_InitStruct.Pin = H2_M3_Pin|H1_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(H2_M3_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : H1_M3_Pin */
   GPIO_InitStruct.Pin = H1_M3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(H1_M3_GPIO_Port, &GPIO_InitStruct);
 
@@ -893,22 +893,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(EN_M4_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : H1_M4_Pin */
-  GPIO_InitStruct.Pin = H1_M4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(H1_M4_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
