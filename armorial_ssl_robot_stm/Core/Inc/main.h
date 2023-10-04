@@ -77,10 +77,14 @@ void Error_Handler(void);
 #define PWM_CARREGAMENTO_CHUTE_GPIO_Port GPIOA
 #define EN_M1_Pin GPIO_PIN_4
 #define EN_M1_GPIO_Port GPIOA
+#define IR_read_Pin GPIO_PIN_5
+#define IR_read_GPIO_Port GPIOA
 #define PWM_M2_Pin GPIO_PIN_6
 #define PWM_M2_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_7
 #define LED2_GPIO_Port GPIOA
+#define DEBUG_LED_Pin GPIO_PIN_4
+#define DEBUG_LED_GPIO_Port GPIOC
 #define PWM_M1_Pin GPIO_PIN_0
 #define PWM_M1_GPIO_Port GPIOB
 #define H2_M1_Pin GPIO_PIN_13

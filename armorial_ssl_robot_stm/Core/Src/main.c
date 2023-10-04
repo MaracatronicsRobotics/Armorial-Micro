@@ -49,6 +49,7 @@ uint8_t txBuffer[1024];
 FeedbackPacket robotFeedback;
 uint8_t robotId = 0;
 uint32_t adc1[6];
+GPIO_PinState IR_read;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -122,7 +123,7 @@ long long timer_kick = 0;
 long long timer_readings = 0;
 long long timer_led = 0;
 float kickCmd = 0;
-int high = 0;
+int high = 0; //used for blink
 
 void turn_kick_charge_on() {PWM_CARREG_CHUTE = 140;}
 void turn_kick_charge_off() {PWM_CARREG_CHUTE = 0;}
@@ -153,7 +154,8 @@ void verify_kick_activation() {
 }
 
 void kick() {
-	if (kickState == charged) {
+	IR_read = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+	if (kickState == charged && !IR_read) {
 		turn_kick_on();
 		kickState = kicking;
 		timer_kick = HAL_GetTick();
@@ -264,6 +266,11 @@ int main(void)
 	  // Kick verification
 	  verify_kick_charge();
 	  verify_kick_activation();
+
+	  //DEBUG
+//	  IR_read = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+//	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, IR_read);
+
 
 	  //  ADC readings
 //	  try_read_ADC();
@@ -822,7 +829,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, DISPARO_CHIP_KICK_Pin|FWD_REV_M2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin|DEBUG_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|LED2_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
@@ -848,8 +855,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DISPARO_NORMAL_Pin EN_M2_Pin FWD_REV_M1_Pin */
-  GPIO_InitStruct.Pin = DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin;
+  /*Configure GPIO pins : DISPARO_NORMAL_Pin EN_M2_Pin FWD_REV_M1_Pin DEBUG_LED_Pin */
+  GPIO_InitStruct.Pin = DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin|DEBUG_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -867,6 +874,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : IR_read_Pin */
+  GPIO_InitStruct.Pin = IR_read_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(IR_read_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : H2_M3_Pin H1_M4_Pin */
   GPIO_InitStruct.Pin = H2_M3_Pin|H1_M4_Pin;
