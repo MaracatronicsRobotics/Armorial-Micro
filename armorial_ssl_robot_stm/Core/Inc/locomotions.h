@@ -236,8 +236,11 @@ void monitorateHall() {
 	}
 	M1_State = H1_State;
 
-	if (HAL_GetTick() - H1_M1_read_begin >= 8500) {
-		wheels_RPM[0] = M1_Counter;
+	if (HAL_GetTick() - H1_M1_read_begin >= 20) {
+		wheels_RPM[0] = ((2 * 3.14 * M1_Counter) / (1 * 3 * 0.02)) * (60 / (2 * 3.14));
+
+		// (2 * M_PI * encoder_count_wl) /
+	    //  (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
 		H1_M1_read_begin = HAL_GetTick();
 		M1_Counter = 0;
 	}

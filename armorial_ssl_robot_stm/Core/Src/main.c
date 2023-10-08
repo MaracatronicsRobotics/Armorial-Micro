@@ -186,24 +186,6 @@ void try_read_ADC() {
 //	}
 //}
 
-void tryMonitorateHalls() {
-//	if (loop_counter <= 1000000) {
-//		loop_counter += 1;
-//	} else {
-//		loop_counter = 0;
-//	}
-
-	long long timestamp = HAL_GetTick();
-	if (timestamp - timer_hall >= 10) {
-		timer_hall = timestamp;
-	} else {
-//		HAL_GPIO_WritePin(GPIOA, LED2_Pin, high);
-//		high = (high + 1) % 2;
-		monitorateHall();
-	}
-//	timer_hall = timestamp;
-}
-
 // not used
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	hallSensorReadings(GPIO_Pin);
@@ -295,7 +277,7 @@ int main(void)
 	  //  ADC readings
 //	  try_read_ADC();
 //	  blink();
-	  tryMonitorateHalls();
+	  monitorateHall();
 
 	  // Check I2C communication
 	  if(getMasterInput) {
