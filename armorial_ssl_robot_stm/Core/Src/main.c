@@ -164,13 +164,6 @@ void kick() {
 	}
 }
 
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-//{
-//	if (hadc->Instance == ADC2) {
-//		adc1[LEITURA_CHUTE] = HAL_ADC_GetValue(&hadc2);
-//	}
-//}
-//
 void try_read_ADC() {
 	if (HAL_GetTick() - timer_readings >= 250) {
 	  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) &adc1[5], 1);
@@ -185,11 +178,6 @@ void try_read_ADC() {
 //	  timer_led = HAL_GetTick();
 //	}
 //}
-
-// not used
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	hallSensorReadings(GPIO_Pin);
-}
 
 /* USER CODE END 0 */
 
@@ -888,19 +876,15 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOD, EN_M3_Pin|FWD_REV_M4_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, EN_M4_Pin|H1_M4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : H2_M2_Pin H2_M1_Pin H2_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M2_Pin|H2_M1_Pin|H2_M4_Pin;
+  /*Configure GPIO pins : H2_M2_Pin H1_M2_Pin H2_M1_Pin H1_M1_Pin
+                           H2_M4_Pin */
+  GPIO_InitStruct.Pin = H2_M2_Pin|H1_M2_Pin|H2_M1_Pin|H1_M1_Pin
+                          |H2_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : H1_M2_Pin */
-  GPIO_InitStruct.Pin = H1_M2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(H1_M2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DISPARO_CHIP_KICK_Pin FWD_REV_M2_Pin */
   GPIO_InitStruct.Pin = DISPARO_CHIP_KICK_Pin|FWD_REV_M2_Pin;
@@ -923,22 +907,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : H1_M1_Pin */
-  GPIO_InitStruct.Pin = H1_M1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(H1_M1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : H2_M3_Pin */
   GPIO_InitStruct.Pin = H2_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(H2_M3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : H1_M3_Pin */
   GPIO_InitStruct.Pin = H1_M3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(H1_M3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : EN_M3_Pin FWD_REV_M4_Pin */
@@ -948,25 +926,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : EN_M4_Pin */
-  GPIO_InitStruct.Pin = EN_M4_Pin;
+  /*Configure GPIO pins : EN_M4_Pin H1_M4_Pin */
+  GPIO_InitStruct.Pin = EN_M4_Pin|H1_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(EN_M4_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : H1_M4_Pin */
-  GPIO_InitStruct.Pin = H1_M4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(H1_M4_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
-  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
