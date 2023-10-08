@@ -99,11 +99,11 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM9_Init(void);
 static void MX_TIM5_Init(void);
-static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -122,8 +122,10 @@ kick_state kickState = kicking;
 long long timer_kick = 0;
 long long timer_readings = 0;
 long long timer_led = 0;
+long long timer_hall = 0;
 float kickCmd = 0;
 int high = 0; //used for blink
+int loop_counter;
 
 void turn_kick_charge_on() {PWM_CARREG_CHUTE = 140;}
 void turn_kick_charge_off() {PWM_CARREG_CHUTE = 0;}
@@ -176,12 +178,30 @@ void try_read_ADC() {
 	}
 }
 
-void blink() {
-	if (HAL_GetTick() - timer_led >= 1000) {
-	  HAL_GPIO_WritePin(GPIOA, LED2_Pin, high);
-	  high = (high + 1) % 2;
-	  timer_led = HAL_GetTick();
+//void blink() {
+//	if (HAL_GetTick() - timer_led >= 1000) {
+//	  HAL_GPIO_WritePin(GPIOA, LED2_Pin, high);
+//	  high = (high + 1) % 2;
+//	  timer_led = HAL_GetTick();
+//	}
+//}
+
+void tryMonitorateHalls() {
+//	if (loop_counter <= 1000000) {
+//		loop_counter += 1;
+//	} else {
+//		loop_counter = 0;
+//	}
+
+	long long timestamp = HAL_GetTick();
+	if (timestamp - timer_hall >= 10) {
+		timer_hall = timestamp;
+	} else {
+//		HAL_GPIO_WritePin(GPIOA, LED2_Pin, high);
+//		high = (high + 1) % 2;
+		monitorateHall();
 	}
+//	timer_hall = timestamp;
 }
 
 // not used
@@ -222,11 +242,11 @@ int main(void)
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_TIM3_Init();
+  MX_ADC1_Init();
   MX_TIM2_Init();
   MX_TIM4_Init();
   MX_TIM9_Init();
   MX_TIM5_Init();
-  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   // Starting timer 2 for channels 2 (kick charging)
@@ -274,15 +294,14 @@ int main(void)
 
 	  //  ADC readings
 //	  try_read_ADC();
-	  blink();
+//	  blink();
+	  tryMonitorateHalls();
 
 	  // Check I2C communication
 	  if(getMasterInput) {
 		  getMasterInput = 0;
 		  if (getTransferDirection == 0) {
 			  	float wheels[4];
-			  	monitorateHall(wheels);
-			  	HAL_Delay(10);
 			  	getWheels(wheels);
 			    robotFeedback.control = 0;
 			  	robotFeedback.crc = 0;
@@ -330,34 +349,38 @@ int main(void)
 	  			vy = controlPacket.vy;
 	  			vw = controlPacket.vw;
 
+//	  			vx = 0.5;
+//	  			vy = 0.0;
+//	  			vw = 0.0;
+
 	  			calcWheelsPWM(vx, vy, vw);
 
 	  			// TODO: process this packet with a method call (?)
-	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-
-				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
-				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
-
-	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
-	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
-
-	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
-	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
-
-	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
-	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
-
-	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
-	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
-	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
+//	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
+//
+//				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
+//				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
+//
+//	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
+//	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
+//
+//	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
+//	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
+//
+//	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
+//	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
+//
+//	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
+//	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
+//	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 	  		}
 	  	  }
 
@@ -441,13 +464,13 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 6;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -457,9 +480,54 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_13;
+  sConfig.Channel = ADC_CHANNEL_7;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_9;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Rank = 3;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_15;
+  sConfig.Rank = 4;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Rank = 5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_13;
+  sConfig.Rank = 6;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -583,7 +651,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 128;
+  htim3.Init.Prescaler = 64;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -829,10 +897,10 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, DISPARO_CHIP_KICK_Pin|FWD_REV_M2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin|DEBUG_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|LED2_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, EN_M1_Pin|FWD_REV_M3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, EN_M3_Pin|FWD_REV_M4_Pin, GPIO_PIN_RESET);
@@ -840,13 +908,17 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : H2_M2_Pin H1_M2_Pin H2_M1_Pin H1_M1_Pin
-                           H2_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M2_Pin|H1_M2_Pin|H2_M1_Pin|H1_M1_Pin
-                          |H2_M4_Pin;
+  /*Configure GPIO pins : H2_M2_Pin H2_M1_Pin H2_M4_Pin */
+  GPIO_InitStruct.Pin = H2_M2_Pin|H2_M1_Pin|H2_M4_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : H1_M2_Pin */
+  GPIO_InitStruct.Pin = H1_M2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(H1_M2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DISPARO_CHIP_KICK_Pin FWD_REV_M2_Pin */
   GPIO_InitStruct.Pin = DISPARO_CHIP_KICK_Pin|FWD_REV_M2_Pin;
@@ -855,41 +927,35 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DISPARO_NORMAL_Pin EN_M2_Pin FWD_REV_M1_Pin DEBUG_LED_Pin */
-  GPIO_InitStruct.Pin = DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin|DEBUG_LED_Pin;
+  /*Configure GPIO pins : DISPARO_NORMAL_Pin EN_M2_Pin FWD_REV_M1_Pin */
+  GPIO_InitStruct.Pin = DISPARO_NORMAL_Pin|EN_M2_Pin|FWD_REV_M1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : EN_M1_Pin LED2_Pin FWD_REV_M3_Pin */
-  GPIO_InitStruct.Pin = EN_M1_Pin|LED2_Pin|FWD_REV_M3_Pin;
+  /*Configure GPIO pins : EN_M1_Pin FWD_REV_M3_Pin */
+  GPIO_InitStruct.Pin = EN_M1_Pin|FWD_REV_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : IR_read_Pin */
-  GPIO_InitStruct.Pin = IR_read_Pin;
+  /*Configure GPIO pin : H1_M1_Pin */
+  GPIO_InitStruct.Pin = H1_M1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(IR_read_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(H1_M1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : H2_M3_Pin H1_M4_Pin */
-  GPIO_InitStruct.Pin = H2_M3_Pin|H1_M4_Pin;
+  /*Configure GPIO pin : H2_M3_Pin */
+  GPIO_InitStruct.Pin = H2_M3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(H2_M3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : H1_M3_Pin */
   GPIO_InitStruct.Pin = H1_M3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(H1_M3_GPIO_Port, &GPIO_InitStruct);
 
@@ -906,6 +972,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(EN_M4_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : H1_M4_Pin */
+  GPIO_InitStruct.Pin = H1_M4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(H1_M4_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

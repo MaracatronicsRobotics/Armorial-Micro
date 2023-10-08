@@ -30,27 +30,44 @@ long long H1_M2_read_begin;
 long long H1_M3_read_begin;
 long long H1_M4_read_begin;
 
-int H1_M1_Counter = 0;
-int H1_M2_Counter = 0;
-int H1_M3_Counter = 0;
-int H1_M4_Counter = 0;
+int M1_Counter = 0;
+GPIO_PinState M1_State = GPIO_PIN_RESET;
+int M2_Counter = 0;
+int M3_Counter = 0;
+int M4_Counter = 0;
 float wheels_RPM[4];
+
+int H1_M1_Counter = 0;
+int H2_M1_Counter = 0;
+int H1_M2_Counter = 0;
+int H2_M2_Counter = 0;
+int H1_M3_Counter = 0;
+int H2_M3_Counter = 0;
+int H1_M4_Counter = 0;
+int H2_M4_Counter = 0;
 
 uint8_t M1_Dir = 1; // 1 or -1 depending on wheel direction
 uint8_t M2_Dir = 1;
 uint8_t M3_Dir = 1;
 uint8_t M4_Dir = 1;
 
-uint8_t M1_State = 0;
-uint8_t M1_State_Prev = 0;
-uint8_t M2_State = 0;
-uint8_t M2_State_Prev = 0;
-uint8_t M3_State = 0;
-uint8_t M3_State_Prev = 0;
-uint8_t M4_State = 0;
-uint8_t M4_State_Prev = 0;
+//enum HallSensors_State M1_State;
+enum HallSensors_State M1_State_Prev;
+enum HallSensors_State M2_State;
+enum HallSensors_State M2_State_Prev;
+enum HallSensors_State M3_State;
+enum HallSensors_State M3_State_Prev;
+enum HallSensors_State M4_State;
+enum HallSensors_State M4_State_Prev;
 
 int direction = 1;
+
+enum HallSensors_State {
+	DOWN_DOWN,
+	DOWN_UP,
+	UP_UP,
+	UP_DOWN
+};
 
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
@@ -58,10 +75,10 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
 }
 
 static void calcWheelsPWM(float vx, float vy, float vw) {
-	wheelFrontLeft = (-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw);
-	wheelBottomLeft = (-23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
-	wheelBottomRight = (23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
-	wheelFrontRight = -((-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw));
+//	wheelFrontLeft = (-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw);
+//	wheelBottomLeft = (-23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
+//	wheelBottomRight = (23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
+//	wheelFrontRight = -((-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw));
 
 	wheelFrontLeft = (1.0 / wheelRadius) *
 			(( (robotRadius * vw) - (vx * sin(wheel1Angle * degToRad)) + (vy * cos(wheel1Angle * degToRad)) ));
@@ -92,6 +109,27 @@ static void calcWheelsPWM(float vx, float vy, float vw) {
 	MOTOR_4_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
 	HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
 	HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
+
+//	wheelFrontLeft = vx * 100;
+//	wheelBottomLeft = vx * 100;
+//	wheelBottomRight = vx * 100;
+//	wheelFrontRight = vx * 100;
+//
+//	MOTOR_1_PWM = fabs(wheelFrontLeft);
+//	HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
+//	HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
+//
+//	MOTOR_2_PWM = fabs(wheelBottomLeft);
+//	HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
+//	HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
+//
+//	MOTOR_3_PWM = fabs(wheelBottomRight);
+//	HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
+//	HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
+//
+//	MOTOR_4_PWM = fabs(wheelFrontRight);
+//	HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
+//	HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
 }
 
 
@@ -149,12 +187,39 @@ void hallSensorReadings(uint16_t GPIO_Pin) {
 	}
 }
 
-uint8_t getHallState(GPIO_TypeDef* H1_Port, uint16_t H1_Pin, GPIO_TypeDef* H2_Port, uint16_t H2_Pin) {
+enum HallSensors_State getHallState(GPIO_TypeDef* H1_Port, uint16_t H1_Pin, GPIO_TypeDef* H2_Port, uint16_t H2_Pin, int motor) {
 	GPIO_PinState H1_State = HAL_GPIO_ReadPin(H1_Port, H1_Pin);
 	GPIO_PinState H2_State = HAL_GPIO_ReadPin(H2_Port, H2_Pin);
 
-	if (H1_State) return H2_State;
-	else return 3 * H1_State - H2_State;
+
+	switch (motor) {
+		case(1): {
+			H1_M1_Counter += H1_State;
+			H2_M1_Counter += H2_State;
+		} break;
+		case (2): {
+			H1_M2_Counter += H1_State;
+			H2_M2_Counter += H2_State;
+		} break;
+		case (3): {
+			H1_M3_Counter += H1_State;
+			H2_M3_Counter += H2_State;
+		} break;
+		case (4): {
+			H1_M4_Counter += H1_State;
+			H2_M4_Counter += H2_State;
+		} break;
+	}
+
+	if (H1_State && H1_State) {
+		return UP_UP;
+	} else if (H1_State) {
+		return UP_DOWN;
+	} else if (H2_State) {
+		return DOWN_UP;
+	} else {
+		return DOWN_DOWN;
+	}
 	/*
 	 * H1 = 0, H2 = 0 -> 0
 	 * H1 = 0, H2 = 1 -> 1
@@ -164,65 +229,81 @@ uint8_t getHallState(GPIO_TypeDef* H1_Port, uint16_t H1_Pin, GPIO_TypeDef* H2_Po
 }
 
 void monitorateHall() {
-	long long timeStamp = HAL_GetTick();
+	GPIO_PinState H1_State = HAL_GPIO_ReadPin(H1_M1_GPIO_Port, H1_M1_Pin);
+
+	if (M1_State < H1_State) {
+		M1_Counter += 1;
+	}
+	M1_State = H1_State;
+
+	if (HAL_GetTick() - H1_M1_read_begin >= 8500) {
+		wheels_RPM[0] = M1_Counter;
+		H1_M1_read_begin = HAL_GetTick();
+		M1_Counter = 0;
+	}
+
 	// Motor 1
-		M1_State = getHallState(H1_M1_GPIO_Port, H1_M1_Pin, H2_M1_GPIO_Port, H2_M1_Pin);
-		if (M1_State != M1_State_Prev) {
-			if (M1_State > M1_State_Prev || M1_State + 3 == M1_State_Prev) H1_M1_Counter += direction;
-			else H1_M1_Counter -= direction;
-			M1_State_Prev = M1_State;
-		}
-		if (timeStamp - H1_M1_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-			H1_M1_read_begin = timeStamp;
-			wheels_RPM[0] = H1_M1_Counter;
-			H1_M1_Counter = 0;
-		}
-
-	// Motor 2
-		M2_State = getHallState(H1_M2_GPIO_Port, H1_M2_Pin, H2_M2_GPIO_Port, H2_M2_Pin);
-		if (M2_State != M2_State_Prev) {
-			if (M2_State > M2_State_Prev || M2_State + 3 == M2_State_Prev) H1_M2_Counter += direction;
-			else H1_M2_Counter -= direction;
-			M2_State_Prev = M2_State;
-		}
-		if (timeStamp - H1_M2_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-			H1_M2_read_begin = timeStamp;
-			wheels_RPM[1] = H1_M2_Counter;
-			H1_M2_Counter = 0;
-		}
-
-	// Motor 3
-		M3_State = getHallState(H1_M3_GPIO_Port, H1_M3_Pin, H2_M3_GPIO_Port, H2_M3_Pin);
-		if (M3_State != M3_State_Prev) {
-			if (M3_State > M3_State_Prev || M3_State + 3 == M3_State_Prev) H1_M3_Counter += direction;
-			else H1_M3_Counter -= direction;
-			M3_State_Prev = M3_State;
-		}
-		if (timeStamp - H1_M3_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-			H1_M3_read_begin = timeStamp;
-			wheels_RPM[2] = H1_M3_Counter;
-			H1_M3_Counter = 0;
-		}
-
-	// Motor 4
-		M4_State = getHallState(H1_M4_GPIO_Port, H1_M4_Pin, H2_M4_GPIO_Port, H2_M4_Pin);
-		if (M4_State != M4_State_Prev) {
-			if (M4_State > M4_State_Prev || M4_State + 3 == M4_State_Prev) H1_M4_Counter += direction;
-			else H1_M4_Counter -= direction;
-			M4_State_Prev = M4_State;
-		}
-		if (timeStamp - H1_M4_read_begin >= HALL_SENSOR_TIMER_DELAY) {
-			H1_M4_read_begin = timeStamp;
-			wheels_RPM[3] = H1_M4_Counter;
-			H1_M4_Counter = 0;
-		}
+//		M1_State = getHallState(H1_M1_GPIO_Port, H1_M1_Pin, H2_M1_GPIO_Port, H2_M1_Pin, 1);
+//		if (M1_State != M1_State_Prev) {
+//			if (M1_State > M1_State_Prev || M1_State + 3 == M1_State_Prev) M1_Counter += direction;
+//			else M1_Counter -= direction;
+//			M1_State_Prev = M1_State;
+//		}
+//		if (timeStamp - H1_M1_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+//			H1_M1_read_begin = timeStamp;
+//			wheels_RPM[0] = M1_Counter * 60;
+//			M1_Counter = 0;
+//		}
+//
+//	// Motor 2
+//		M2_State = getHallState(H1_M2_GPIO_Port, H1_M2_Pin, H2_M2_GPIO_Port, H2_M2_Pin, 2);
+//		if (M2_State != M2_State_Prev) {
+//			if (M2_State > M2_State_Prev || M2_State + 3 == M2_State_Prev) M2_Counter += direction;
+//			else M2_Counter -= direction;
+//			M2_State_Prev = M2_State;
+//		}
+//		if (timeStamp - H1_M2_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+//			H1_M2_read_begin = timeStamp;
+//			wheels_RPM[1] = M2_Counter * 60;
+//			M2_Counter = 0;
+//		}
+//
+//	// Motor 3
+//		M3_State = getHallState(H1_M3_GPIO_Port, H1_M3_Pin, H2_M3_GPIO_Port, H2_M3_Pin, 3);
+//		if (M3_State != M3_State_Prev) {
+//			if (M3_State > M3_State_Prev || M3_State + 3 == M3_State_Prev) M3_Counter += direction;
+//			else M3_Counter -= direction;
+//			M3_State_Prev = M3_State;
+//		}
+//		if (timeStamp - H1_M3_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+//			H1_M3_read_begin = timeStamp;
+//			wheels_RPM[2] = M3_Counter * 60;
+//			M3_Counter = 0;
+//		}
+//
+//	// Motor 4
+//		M4_State = getHallState(H1_M4_GPIO_Port, H1_M4_Pin, H2_M4_GPIO_Port, H2_M4_Pin, 4);
+//		if (M4_State != M4_State_Prev) {
+//			if ((M4_State + 3) % 4 == M4_State_Prev) M4_Counter += direction;
+//			else if ((M4_State - 3) % 4 == M4_State_Prev) M4_Counter -= direction;
+//			M4_State_Prev = M4_State;
+//		}
+//		if (timeStamp - H1_M4_read_begin >= HALL_SENSOR_TIMER_DELAY) {
+//			H1_M4_read_begin = timeStamp;
+//			wheels_RPM[1] = H1_M4_Counter;
+//			wheels_RPM[2] = H2_M4_Counter;
+//			wheels_RPM[3] = M4_Counter;
+//			H1_M4_Counter = 0;
+//			H2_M4_Counter = 0;
+//			M4_Counter = 0;
+//		}
 }
 
 static void getWheels(float *wheels) {
-	wheels[0] = (wheels_RPM[0] * 2.0 * M_PI * 0.0005) / 60.0;
-	wheels[1] = (wheels_RPM[1] * 2.0 * M_PI * 0.0005) / 60.0;
-	wheels[2] = (wheels_RPM[2] * 2.0 * M_PI * 0.0005) / 60.0;
-	wheels[3] = (wheels_RPM[3] * 2.0 * M_PI * 0.0005) / 60.0;
+	wheels[0] = wheels_RPM[0];
+	wheels[1] = wheels_RPM[1];
+	wheels[2] = wheels_RPM[2];
+	wheels[3] = wheels_RPM[3];
 }
 
 #endif // ARMORIAL_SUASSUNA_LOCOMOTIONS_H
