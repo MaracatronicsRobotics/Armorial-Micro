@@ -92,6 +92,13 @@ static void calcWheelsPWM(float vx, float vy, float vw) {
 	wheelFrontRight = (1.0 / wheelRadius) *
 			(( (robotRadius * vw) - (vx * sin(wheel4Angle * degToRad)) + (vy * cos(wheel4Angle * degToRad)) ));
 
+	/*
+	wheelFrontLeft = (-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw);
+	wheelBottomLeft = (23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
+	wheelBottomRight = (23.5702 * vx) + (-23.5702 * vy) + (2.697 * vw);
+	wheelFrontRight = ((-27.9557 * vx) + (18.1546 * vy) + (2.697 * vw));
+	*/
+
 	if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
 	if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
 	if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
@@ -260,7 +267,7 @@ void monitorateHall() {
 	M4_State = H4_State;
 
 	if (timestamp - H1_M1_read_begin >= 20) {
-		wheels_RPM[0] = ((2 * 3.14 * M1_Counter) / (1 * 3 * 0.02)) * (60 / (2 * 3.14));
+		wheels_RPM[0] = ((2 * 3.14 * M1_Counter) / (6 * 3 * 0.02)) * (60 / (2 * 3.14));
 
 		// (2 * M_PI * encoder_count_wl) /
 	    //  (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
@@ -269,7 +276,7 @@ void monitorateHall() {
 	}
 
 	if (timestamp - H1_M2_read_begin >= 20) {
-		wheels_RPM[1] = ((2 * 3.14 * M2_Counter) / (1 * 3 * 0.02)) * (60 / (2 * 3.14));
+		wheels_RPM[1] = ((2 * 3.14 * M2_Counter) / (6 * 3 * 0.02)) * (60 / (2 * 3.14));
 
 		// (2 * M_PI * encoder_count_wl) /
 	    //  (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
@@ -278,7 +285,7 @@ void monitorateHall() {
 	}
 
 	if (timestamp - H1_M3_read_begin >= 20) {
-		wheels_RPM[2] = ((2 * 3.14 * M3_Counter) / (1 * 3 * 0.02)) * (60 / (2 * 3.14));
+		wheels_RPM[2] = ((2 * 3.14 * M3_Counter) / (6 * 3 * 0.02)) * (60 / (2 * 3.14));
 
 		// (2 * M_PI * encoder_count_wl) /
 	    //  (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
@@ -287,7 +294,7 @@ void monitorateHall() {
 	}
 
 	if (timestamp - H1_M4_read_begin >= 20) {
-		wheels_RPM[3] = ((2 * 3.14 * M4_Counter) / (1 * 3 * 0.02)) * (60 / (2 * 3.14));
+		wheels_RPM[3] = ((2 * 3.14 * M4_Counter) / (6 * 3 * 0.02)) * (60 / (2 * 3.14));
 
 		// (2 * M_PI * encoder_count_wl) /
 	    //  (PULSES_PER_REVOLUTION * GEAR_RATIO * (ENCODER_RESOLUTION / 1E6f)));
