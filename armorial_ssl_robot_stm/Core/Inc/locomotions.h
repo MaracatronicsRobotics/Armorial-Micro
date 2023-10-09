@@ -104,19 +104,19 @@ static void calcWheelsPWM(float vx, float vy, float vw) {
 	if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
 	if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
 
-	MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 0, 100);
+	MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 30, 100);
 	HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
 	HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 1);
 
-	MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 0, 100);
+	MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 30, 100);
 	HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
 	HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 1);
 
-	MOTOR_3_PWM = map(fabs(wheelBottomRight), 0, 30, 0, 100);
+	MOTOR_3_PWM = map(fabs(wheelBottomRight), 0, 30, 30, 100);
 	HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
 	HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 1);
 
-	MOTOR_4_PWM = map(fabs(wheelFrontRight), 0, 30, 0, 100);
+	MOTOR_4_PWM = map(fabs(wheelFrontRight), 0, 30, 30, 100);
 	HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
 	HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 1);
 
