@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define ROBOT_ID 0
+#define ROBOT_ID 2
 
 typedef struct {
   char control = ROBOT_ID;

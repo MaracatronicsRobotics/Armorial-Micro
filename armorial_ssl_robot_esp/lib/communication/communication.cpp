@@ -5,6 +5,7 @@
 
 u8 Communication::baseStationMacAddr[6] = {};
 bool Communication::receivedFromBaseStation = false;
+bool Communication::receivedRobotPacket = false;
 Ticker Communication::feedbackTimer = {};
 
 Communication::Communication() {}
@@ -16,7 +17,6 @@ void Communication::setupEspNow() {
 
   // Init ESP-NOW
   if (esp_now_init() != ERR_OK) {
-    // Serial.println("ESP-NOW initialization failed");
     ESP.restart();
     return;
   }
@@ -35,11 +35,8 @@ bool Communication::sendFeedbackPacket(const FeedbackPacket &feedbackPacket) {
     return false;
   }
 
-  // Serial.println("send");
-
   int ret = esp_now_send(baseStationMacAddr, (uint8_t *)&feedbackPacket,
                          sizeof(FeedbackPacket));
-  // Serial.println(ret);
 
   return (ret == ERR_OK);
 }
@@ -61,8 +58,6 @@ void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
         // Add peer
         int ret = esp_now_add_peer(baseStationMacAddr, ESP_NOW_ROLE_CONTROLLER,
                                    CONFIG_ESPNOW_CHANNEL, NULL, 0);
-        // Serial.println("fon = ");
-        // Serial.println(ret);
       }
 
       if (!checkIfMacIsBaseStation(mac)) {
@@ -71,6 +66,7 @@ void Communication::EspNowDataReceived(u8 *mac, u8 *incomingData,
 
       uint8_t robotId = controlPacket.control & 0x0F;
       if (robotId == ROBOT_ID) {
+        receivedRobotPacket = true;
         I2C::sendControlPacket(controlPacket);
         digitalWrite(LED_BUILTIN, HIGH);
       }
@@ -82,4 +78,8 @@ bool Communication::checkIfMacIsBaseStation(const uint8_t *mac) {
   return memcmp(mac, baseStationMacAddr, 6) == 0;
 }
 
-void Communication::computeFeedbackCallback() { I2C::getFeedbackPacket(); }
+void Communication::computeFeedbackCallback() {
+  if (receivedRobotPacket) {
+    I2C::getFeedbackPacket();
+  }
+}

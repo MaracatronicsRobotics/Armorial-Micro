@@ -9,7 +9,7 @@
 #define CONFIG_ESPNOW_CHANNEL 0
 #define CONFIG_ESPNOW_ENCRYPT false
 
-#define FEEDBACK_TIME 0.016 // seconds
+#define FEEDBACK_TIME 0.5 // seconds
 
 class Communication {
 public:
@@ -29,6 +29,7 @@ protected:
 private:
   static u8 baseStationMacAddr[6];
   static bool receivedFromBaseStation;
+  static bool receivedRobotPacket;
   static Ticker feedbackTimer;
 };
 

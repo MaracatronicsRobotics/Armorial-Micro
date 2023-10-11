@@ -27,7 +27,9 @@ void I2C::sendControlPacket(const ControlPacket &controlPacket) {
 
 void I2C::getFeedbackPacket() {
   size_t pktSize = sizeof(FeedbackPacket);
-  Wire.requestFrom(STM_I2C_ADDRESS, pktSize);
+  if (pktSize != Wire.requestFrom(STM_I2C_ADDRESS, pktSize)) {
+    return;
+  }
   uint8_t buffer[1024];
   FeedbackPacket packet;
   for (size_t i = 0; i < pktSize; i++) {

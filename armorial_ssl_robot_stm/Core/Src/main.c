@@ -41,9 +41,7 @@ __IO uint32_t     Xfer_Complete = 0;
 /* USER CODE BEGIN PD */
 /* USER CODE BEGIN PD */
 uint8_t getMasterInput = 0;
-uint8_t getEnableListen = 0;
 uint8_t getTransferDirection = 0;
-uint8_t getControlAvailable = 0;
 uint8_t rxBuffer[1024];
 uint8_t txBuffer[1024];
 FeedbackPacket robotFeedback;
@@ -235,7 +233,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_4);
 
   // Calibrating ESC routine;
-  calibrateESC();
+  //calibrateESC();
 
 
   if(HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK) {
@@ -243,6 +241,7 @@ int main(void)
 	  Error_Handler();
   }
 
+  char control;
   float vx, vy, vw;
 
   // Starting ADC channel using DMA
@@ -273,7 +272,7 @@ int main(void)
 		  if (getTransferDirection == 0) {
 			  	float wheels[4];
 			  	getWheels(wheels);
-			    robotFeedback.control = 0;
+			    robotFeedback.control =control;
 			  	robotFeedback.crc = 0;
 			  	robotFeedback.vx = vx;
 			  	robotFeedback.vy = vy;
@@ -291,72 +290,34 @@ int main(void)
 			} else {
 				HAL_I2C_Slave_Seq_Receive_IT(&hi2c1, (uint8_t*) rxBuffer,
 						sizeof(ControlPacket), I2C_NEXT_FRAME);
+
+				ControlPacket controlPacket;
+				memcpy(&controlPacket, rxBuffer, sizeof(ControlPacket));
+				if(validatePacketCRC(controlPacket)) {
+
+					// Enable dribbling based on control
+					if(controlPacket.control & 0b01000000) {
+						activateESC();
+					}
+					else {
+						deactivateESC();
+					}
+
+					if(controlPacket.solenoidPower) {
+						kick();
+						kickCmd = 1000;
+					} else if (!controlPacket.solenoidPower) {
+						kickCmd = 0;
+					}
+
+					control = controlPacket.control;
+					vx = controlPacket.vx;
+					vy = controlPacket.vy;
+					vw = controlPacket.vw;
+
+					calcWheelsPWM(vx, vy, vw);
+		  		}
 			}
-	  }
-
-	  if(getControlAvailable) {
-	  		getControlAvailable = 0;
-	  		ControlPacket controlPacket;
-	  		memcpy(&controlPacket, rxBuffer, sizeof(ControlPacket));
-	  		if(validatePacketCRC(controlPacket)) {
-
-	  			// Enable dribbling based on control
-	  			if(controlPacket.control & 0b01000000) {
-	  				activateESC();
-	  			}
-	  			else {
-	  				deactivateESC();
-	  			}
-
-	  			if(controlPacket.solenoidPower) {
-	  				kick();
-	  				kickCmd = 1000;
-	  			} else if (!controlPacket.solenoidPower) {
-	  				kickCmd = 0;
-	  			}
-
-	  			vx = controlPacket.vx;
-	  			vy = controlPacket.vy;
-	  			vw = controlPacket.vw;
-
-//	  			vx = 0.5;
-//	  			vy = 0.0;
-//	  			vw = 0.0;
-
-	  			calcWheelsPWM(vx, vy, vw);
-
-	  			// TODO: process this packet with a method call (?)
-//	  			float wheelFrontLeft = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//	  			float wheelBottomLeft = (-23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//				float wheelBottomRight = (23.5702 * controlPacket.vx) + (-23.5702 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//				float wheelFrontRight = (-27.9557 * controlPacket.vx) + (18.1546 * controlPacket.vy) + (2.697 * controlPacket.vw);
-//
-//				if(fabs(wheelFrontLeft) >= 30.0f) wheelFrontLeft = (wheelFrontLeft < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelBottomLeft) >= 30.0f) wheelBottomLeft = (wheelBottomLeft < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelBottomRight) >= 30.0f) wheelBottomRight = (wheelBottomRight < 0) ? -30.0f : 30.0f;
-//				if(fabs(wheelFrontRight) >= 30.0f) wheelFrontRight = (wheelFrontRight < 0) ? -30.0f : 30.0f;
-//
-//	  			MOTOR_1_PWM = map(fabs(wheelFrontLeft), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M1_GPIO_Port, FWD_REV_M1_Pin, (wheelFrontLeft >= 0));
-//	  			HAL_GPIO_WritePin(EN_M1_GPIO_Port, EN_M1_Pin, fabs(wheelFrontLeft) > 2);
-//
-//	  			MOTOR_2_PWM = map(fabs(wheelBottomLeft), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M2_GPIO_Port, FWD_REV_M2_Pin, (wheelBottomLeft >= 0));
-//	  			HAL_GPIO_WritePin(EN_M2_GPIO_Port, EN_M2_Pin, fabs(wheelBottomLeft) > 2);
-//
-//	  			MOTOR_4_PWM = map(fabs(wheelBottomRight), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M4_GPIO_Port, FWD_REV_M4_Pin, (wheelBottomRight >= 0));
-//	  			HAL_GPIO_WritePin(EN_M4_GPIO_Port, EN_M4_Pin, fabs(wheelBottomRight) > 2);
-//
-//	  			MOTOR_3_PWM = map(fabs(wheelFrontRight), 0, 30, 10, 100);
-//	  			HAL_GPIO_WritePin(FWD_REV_M3_GPIO_Port, FWD_REV_M3_Pin, (wheelFrontRight >= 0));
-//	  			HAL_GPIO_WritePin(EN_M3_GPIO_Port, EN_M3_Pin, fabs(wheelFrontRight) > 2);
-	  		}
-	  	  }
-
-	  if(getEnableListen) {
-		  HAL_I2C_EnableListen_IT(&hi2c1);
-		  getEnableListen = 0;
 	  }
     /* USER CODE END WHILE */
 
@@ -941,25 +902,24 @@ static void MX_GPIO_Init(void)
 
 void HAL_I2C_SlaveTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-	getEnableListen = 1;
 }
 
 void HAL_I2C_SlaveRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-	getEnableListen = 1;
-	getControlAvailable = 1;
 }
 
 void HAL_I2C_ListenCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-	getEnableListen = 1;
+	if(HAL_I2C_EnableListen_IT(&hi2c1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 }
 
 void HAL_I2C_AddrCallback(I2C_HandleTypeDef *hi2c, uint8_t TransferDirection,
 		uint16_t AddrMatchCode) {
 	getTransferDirection = TransferDirection;
 	getMasterInput = 1;
-	getEnableListen = 1;
 }
 
 /**
