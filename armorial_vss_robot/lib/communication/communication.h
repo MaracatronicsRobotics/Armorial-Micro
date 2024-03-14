@@ -5,8 +5,8 @@
 #include <controller.h>
 #include <esp_now.h>
 
-#define CONFIG_WIFI_CHANNEL 1
-#define CONFIG_ESPNOW_CHANNEL 0
+#define CONFIG_WIFI_CHANNEL 2
+#define CONFIG_ESPNOW_CHANNEL 2
 #define CONFIG_ESPNOW_ENCRYPT false
 
 class Communication {

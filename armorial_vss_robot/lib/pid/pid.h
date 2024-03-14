@@ -1,8 +1,6 @@
 #ifndef ARMORIAL_SUASSUNA_PID_H
 #define ARMORIAL_SUASSUNA_PID_H
 
-#define ENCODER_RESOLUTION 10000 // microsseconds
-
 #define MAX_VEL 30.f
 
 class PID {
@@ -13,9 +11,12 @@ public:
   void setConstants(float kp, float ki, float kd);
   void setOutputLimits(float min, float max);
   float getOutput();
+  float getError();
+  float getI();
 
 private:
   float _lastError = 0.0f;
+  float _lastI = 0.0f;
 
   // Constants
   float _Kp, _Ki, _Kd;

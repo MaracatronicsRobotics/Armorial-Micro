@@ -5,7 +5,7 @@ PID::PID() {
   _actualValue = 0.0f;
   _minOutput = -300.0f;
   _maxOutput = 300.0f;
-  _Kp = 1.0f;
+  _Kp = 0.0f;
   _Ki = 0.0f;
   _Kd = 0.0f;
 }
@@ -29,14 +29,28 @@ void PID::setOutputLimits(float min, float max) {
   _maxOutput = max;
 }
 
+float PID::getError() {
+  return _lastError;
+}
+
+float PID::getI() {
+  return _lastI;
+}
+
 float PID::getOutput() {
   float error = _setPoint - _actualValue;
  
   float P = _Kp * error;
-  float I = _Ki * (error + _lastError) / 2;
+  float I = _lastI + _Ki * error;
   float D = _Kd * (error - _lastError);
   
   _lastError = error;
+  _lastI = I;
+
+  // Serial.print("Error: ");
+  // Serial.println(error);
+  // Serial.print("I: ");
+  // Serial.println(I);
 
 	float output = P + I + D;
 

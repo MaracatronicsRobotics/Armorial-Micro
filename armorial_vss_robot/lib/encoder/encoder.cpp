@@ -7,8 +7,8 @@ float Encoder::angular_speed_wr = 0.0f;
 volatile int Encoder::encoder_count_wl = 0;
 volatile int Encoder::encoder_count_wr = 0;
 std::function<void()> Encoder::callback = nullptr;
-SimpleKalmanFilter Encoder::_kalman_wr = SimpleKalmanFilter(0.1, 0.1, 0.01);
-SimpleKalmanFilter Encoder::_kalman_wl = SimpleKalmanFilter(0.1, 0.1, 0.01);
+SimpleKalmanFilter Encoder::_kalman_wr = SimpleKalmanFilter(0.1, 0.1, 0.1);
+SimpleKalmanFilter Encoder::_kalman_wl = SimpleKalmanFilter(0.1, 0.1, 0.1);
 
 float Encoder::getAngularSpeedWL() { return -angular_speed_wl; }
 float Encoder::getAngularSpeedWR() { return angular_speed_wr; }

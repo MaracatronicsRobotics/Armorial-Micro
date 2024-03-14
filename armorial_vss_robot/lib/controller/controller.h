@@ -1,7 +1,7 @@
 #ifndef ARMORIAL_SUASSUNA_CONTROLLER_H
 #define ARMORIAL_SUASSUNA_CONTROLLER_H
 
-#include "pid.h"
+#include <pid.h>
 #include <encoder.h>
 #include <esp32-hal-ledc.h>
 #include <mpu.h>
@@ -30,8 +30,12 @@ public:
   void setControlPacket(const ControlPacket &controlPacket);
   void setLastControlPacket(const ControlPacket &controlPacket);
   ControlPacket getControlPacket();
+  int getPWMConversion(float radianSpeed);
   float getVX(float leftWheelVelocity, float rightWheelVelocity);
   float getVW(float leftWheelVelocity, float rightWheelVelocity);
+
+  float getRightPWM() { return _rightPWM; }
+  float getLeftPWM() { return _leftPWM; }
 
   void drive();
 
@@ -45,6 +49,8 @@ private:
   PID *_leftWheel;
   PID *_rightWheel;
   PID *_mpu_pid;
+  float _rightPWM;
+  float _leftPWM;
 };
 
 #endif // ARMORIAL_SUASSUNA_CONTROLLER_H

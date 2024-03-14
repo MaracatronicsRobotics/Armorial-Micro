@@ -22,8 +22,8 @@ void sendEncoderFeedback() {
   feedbackPacket.vw = controlPacket.vw;
   feedbackPacket.vw1_encoder = encoder->getAngularSpeedWL();
   feedbackPacket.vw2_encoder = encoder->getAngularSpeedWR();
-  feedbackPacket.vw3_encoder = 0.0f;
-  feedbackPacket.vw4_encoder = 0.0f;
+  feedbackPacket.vw3_encoder = controller->getLeftPWM();
+  feedbackPacket.vw4_encoder = controller->getRightPWM();
   feedbackPacket.gyro_x = MPU::getGyroX();
   feedbackPacket.gyro_y = MPU::getGyroY();
   feedbackPacket.gyro_z = MPU::getGyroZ();

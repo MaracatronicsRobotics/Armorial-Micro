@@ -12,6 +12,7 @@ bool MPU::_startedTimer = false;
 void MPU::setup() {
   Wire.begin();
   _mpu.begin();
+  _mpu.setGyroConfig(3);
   _mpu.calcGyroOffsets();
 
   // Setup timer
